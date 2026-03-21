@@ -1,6 +1,8 @@
+import OtpModel from "../models/OtpSchema.js";
 import UserModel from "../models/UserSchema.js";
-import { authenticateUser, hashPassword, verifyPassword } from "../services/auth.services.js";
+import { authenticateUser, generateOtp, hashPassword, verifyPassword } from "../services/auth.services.js";
 import { getUserByEmail } from "../services/db.services.js";
+import sendMail from "../services/nodemailer.services.js";
 
 export const registerUser = async (req, res) => {
     const { name, email, role, password } = req.body;
@@ -68,3 +70,36 @@ export const logoutUser = async (req, res) => {
 
     return res.status(200).json({ message: "Logout successful" });
 }
+
+export const sendOtp = async (req, res) => {
+    const { email } = req.body;
+
+    const userExist = await getUserByEmail(email);
+    if (userExist) {
+        return res.status(400).json({ message: "Email associated with another account" });
+    }
+    const otpExist = await OtpModel.findOne({ email });
+    if (otpExist) {
+        await OtpModel.deleteOne({ email });
+    }
+    const otp = generateOtp();
+    sendMail(email, otp);
+    await OtpModel.create({ email, otp });
+    return res.status(200).json({ message: "OTP sent successfully" });
+}
+
+export const verifyOtp = async (req, res) => {
+    const { email, otp } = req.body;
+
+    const otpExist = await OtpModel.findOne({ email });
+    if (!otpExist) {
+        return res.status(400).json({ message: "Invalid OTP" });
+    }
+    if (otpExist.otp !== otp) {
+        return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    await OtpModel.deleteOne({ email });
+
+    return res.status(200).json({ message: "OTP verified successfully" });
+};

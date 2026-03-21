@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { loginUser, logoutUser, registerUser } from '../controllers/auth.controller.js';
+import { loginUser, logoutUser, registerUser, sendOtp, verifyOtp } from '../controllers/auth.controller.js';
 
 const router = Router();
 
@@ -7,5 +7,8 @@ router.route('/register').post(registerUser);
 router.route('/login').post(loginUser);
 
 router.route('/logout').get(logoutUser);
+
+router.route('/otp/send').post(sendOtp);
+router.route('/otp/verify').post(verifyOtp);
 
 export const authRouter = router;

@@ -39,6 +39,12 @@ export const findSessionById = async (sessionId) => {
     return session;
 }
 
+export const generateOtp = () => {
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    return otp;
+}
+
+
 export const regenerateTokens = async (refreshToken) => {
     try {
         const decodedToken = verifyJwtToken(refreshToken)
