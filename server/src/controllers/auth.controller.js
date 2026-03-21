@@ -55,3 +55,16 @@ export const loginUser = async (req, res) => {
         accessToken: token
     })
 }
+
+export const logoutUser = async (req, res) => {
+    const baseConfig = {
+        secure: true,
+        httpOnly: true,
+        sameSite: 'none'
+    }
+
+    res.clearCookie('access_token', { ...baseConfig });
+    res.clearCookie('refresh_token', { ...baseConfig });
+
+    return res.status(200).json({ message: "Logout successful" });
+}
