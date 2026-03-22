@@ -3,8 +3,10 @@ import { createBin, getBinData, updateBinData } from '../controllers/bin.control
 
 const router = Router();
 
-router.route('/bin/:binId').get(getBinData);
-router.route('/bin').post(updateBinData);
 router.route('/bin/create').post(createBin);
+router.route('/bin/:binId').get(getBinData);
+
+router.route('/bin/esp-32/update').post(updateBinData);    // fetched by the ESP-32 module
+
 
 export const binRouter = router;
