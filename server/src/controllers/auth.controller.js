@@ -1,40 +1,36 @@
 import OtpModel from "../models/OtpSchema.js";
 import UserModel from "../models/UserSchema.js";
 import { authenticateUser, generateOtp, hashPassword, verifyPassword } from "../services/auth.services.js";
-import { getUserByEmail } from "../services/db.services.js";
+import { createUser, getUserByEmail } from "../services/db.services.js";
 import sendMail from "../services/nodemailer.services.js";
 
 export const registerUser = async (req, res) => {
     const { name, email, role, password } = req.body;
 
-    console.log("req.body : ", req.body);
-
-    const userExists = await UserModel.findOne({ email });
+    const userExists = await getUserByEmail(email);
     if (userExists) {
         return res.status(400).json({ message: "Email associated with another account" });
     }
 
     const hashedPassword = await hashPassword(password);
 
-    const user = await UserModel.create({
-        name,
-        email,
-        role,
-        password: hashedPassword
-    });
+    const user = await createUser(name, email, role, hashedPassword);
 
     return res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
+        message: "User registered successfully",
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        }
     });
 }
 
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
-    const userExist = await getUserByEmail(email);
+    const userExist = await getUserByEmail(email, true);
     if (!userExist || !(await verifyPassword(password, userExist.password))) {
         return res.status(401).json({ message: "Invalid username or password" });
     }
@@ -42,7 +38,6 @@ export const loginUser = async (req, res) => {
     const token = await authenticateUser(req, res, userExist);
 
     console.log("User authenticated");
-
 
     req.user = {
         _id: userExist._id,
@@ -52,7 +47,7 @@ export const loginUser = async (req, res) => {
 
     return res.status(200).json({
         message: "Login successful",
-        user: userExist,
+        user: req.user,
         isLoggedIn: true,
         accessToken: token
     })
