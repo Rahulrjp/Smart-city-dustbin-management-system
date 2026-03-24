@@ -7,14 +7,14 @@ import sendMail from "../services/nodemailer.services.js";
 export const registerUser = async (req, res) => {
     const { name, email, role, password } = req.body;
 
-    const userExists = await getUserByEmail(email);
+    const userExists = await getUserByEmail(email.toLowerCase());
     if (userExists) {
         return res.status(400).json({ message: "Email associated with another account" });
     }
 
     const hashedPassword = await hashPassword(password);
 
-    const user = await createUser(name, email, role, hashedPassword);
+    const user = await createUser(name, email.toLowerCase(), role, hashedPassword);
 
     return res.status(201).json({
         message: "User registered successfully",
@@ -38,16 +38,18 @@ export const loginUser = async (req, res) => {
     const token = await authenticateUser(req, res, userExist);
 
     console.log("User authenticated");
+    console.log("User Exist : ", userExist);
 
-    req.user = {
+    const user = {
         _id: userExist._id,
         name: userExist.name,
-        email: userExist.email
+        email: userExist.email,
+        role: userExist.role,
     }
 
     return res.status(200).json({
         message: "Login successful",
-        user: req.user,
+        user: user,
         isLoggedIn: true,
         accessToken: token
     })

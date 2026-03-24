@@ -5,6 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { verifyAuthentication } from './middlewares/auth.middleware.js';
 import { binRouter } from './routes/bin.routes.js';
+import userRouter from './routes/user.routes.js';
 
 
 
@@ -19,6 +20,7 @@ app.use(cookieParser());
 
 
 app.use('/api/v1/auth', verifyAuthentication, authRouter);
-app.use('/api', binRouter);
+app.use('/api', verifyAuthentication, binRouter);
+app.use('/api', verifyAuthentication, userRouter);
 
 export default app;

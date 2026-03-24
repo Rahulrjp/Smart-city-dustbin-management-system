@@ -15,10 +15,15 @@ export const verifyPassword = async (password, hashedPassword) => {
 }
 
 export const createAccessToken = ({ id, name, email, sessionId }) => {
-    return jwt.sign({ id, name, email, sessionId }, process.env.JWT_SECRET, { expiresIn: 1000 * 60 * 15 });
+    return jwt.sign({ _id: id, name, email, sessionId },
+        process.env.JWT_SECRET,
+        { expiresIn: 1000 * 60 * 15 });
 }
+
 export const createRefreshToken = ({ sessionId }) => {
-    return jwt.sign({ sessionId }, process.env.JWT_SECRET, { expiresIn: 1000 * 60 * 60 * 24 * 7 });
+    return jwt.sign({ sessionId },
+        process.env.JWT_SECRET,
+        { expiresIn: 1000 * 60 * 60 * 24 * 7 });
 }
 
 export const verifyJwtToken = (token) => {
@@ -86,7 +91,7 @@ export const authenticateUser = async (req, res, user) => {
         ip: req.ip
     })
     const accessToken = createAccessToken({
-        _id: user.id,
+        id: user._id,
         name: user.name,
         email: user.email,
         sessionId: session.sessionId,

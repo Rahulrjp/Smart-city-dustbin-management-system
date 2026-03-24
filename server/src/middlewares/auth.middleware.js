@@ -3,7 +3,7 @@ import { regenerateTokens, verifyJwtToken } from "../services/auth.services.js";
 export const verifyAuthentication = async (req, res, next) => {
     const accessToken = req.cookies.access_token
     const refreshToken = req.cookies.refresh_token
-    req.user = null
+    req.user = null;
 
     if (!accessToken && !refreshToken) {
         return next();
