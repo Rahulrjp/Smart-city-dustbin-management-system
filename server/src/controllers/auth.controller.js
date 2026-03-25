@@ -6,54 +6,63 @@ import sendMail from "../services/nodemailer.services.js";
 
 export const registerUser = async (req, res) => {
     const { name, email, role, password } = req.body;
-
-    const userExists = await getUserByEmail(email.toLowerCase());
-    if (userExists) {
-        return res.status(400).json({ message: "Email associated with another account" });
-    }
-
-    const hashedPassword = await hashPassword(password);
-
-    const user = await createUser(name, email.toLowerCase(), role, hashedPassword);
-
-    return res.status(201).json({
-        message: "User registered successfully",
-        user: {
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
+    try {
+        const userExists = await getUserByEmail(email.toLowerCase());
+        if (userExists) {
+            return res.status(400).json({ message: "Email associated with another account" });
         }
-    });
-}
+
+        const hashedPassword = await hashPassword(password);
+
+        const user = await createUser(name, email.toLowerCase(), role, hashedPassword);
+
+        return res.status(201).json({
+            message: "User registered successfully",
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+            }
+        });
+    } catch (error) {
+        console.error("Error registering user:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
 
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
-    const userExist = await getUserByEmail(email, true);
-    if (!userExist || !(await verifyPassword(password, userExist.password))) {
-        return res.status(401).json({ message: "Invalid username or password" });
+    try {
+        const userExist = await getUserByEmail(email, true);
+        if (!userExist || !(await verifyPassword(password, userExist.password))) {
+            return res.status(401).json({ message: "Invalid username or password" });
+        }
+
+        const token = await authenticateUser(req, res, userExist);
+
+        console.log("User authenticated");
+        console.log("User Exist : ", userExist);
+
+        const user = {
+            _id: userExist._id,
+            name: userExist.name,
+            email: userExist.email,
+            role: userExist.role,
+        };
+
+        return res.status(200).json({
+            message: "Login successful",
+            user,
+            isLoggedIn: true,
+            accessToken: token,
+        });
+    } catch (error) {
+        console.error("Error logging in:", error);
+        return res.status(500).json({ message: "Internal server error" });
     }
-
-    const token = await authenticateUser(req, res, userExist);
-
-    console.log("User authenticated");
-    console.log("User Exist : ", userExist);
-
-    const user = {
-        _id: userExist._id,
-        name: userExist.name,
-        email: userExist.email,
-        role: userExist.role,
-    }
-
-    return res.status(200).json({
-        message: "Login successful",
-        user: user,
-        isLoggedIn: true,
-        accessToken: token
-    })
-}
+};
 
 export const logoutUser = async (req, res) => {
     const baseConfig = {
@@ -71,32 +80,41 @@ export const logoutUser = async (req, res) => {
 export const sendOtp = async (req, res) => {
     const { email } = req.body;
 
-    const userExist = await getUserByEmail(email);
-    if (userExist) {
-        return res.status(400).json({ message: "Email associated with another account" });
+    try {
+        const userExist = await getUserByEmail(email);
+        if (userExist) {
+            return res.status(400).json({ message: "Email associated with another account" });
+        }
+        const otpExist = await OtpModel.findOne({ email });
+        if (otpExist) {
+            await OtpModel.deleteOne({ email });
+        }
+        const otp = generateOtp();
+        sendMail(email, otp);
+        await OtpModel.create({ email, otp });
+        return res.status(200).json({ message: "OTP sent successfully" });
+    } catch (error) {
+        console.error("Error sending OTP:", error);
+        return res.status(500).json({ message: "OTP sending failed" });
     }
-    const otpExist = await OtpModel.findOne({ email });
-    if (otpExist) {
-        await OtpModel.deleteOne({ email });
-    }
-    const otp = generateOtp();
-    sendMail(email, otp);
-    await OtpModel.create({ email, otp });
-    return res.status(200).json({ message: "OTP sent successfully" });
 }
 
 export const verifyOtp = async (req, res) => {
     const { email, otp } = req.body;
 
-    const otpExist = await OtpModel.findOne({ email });
-    if (!otpExist) {
-        return res.status(400).json({ message: "Invalid OTP" });
-    }
-    if (otpExist.otp !== otp) {
-        return res.status(400).json({ message: "Invalid OTP" });
-    }
+    try {
+        const otpExist = await OtpModel.findOne({ email });
+        if (!otpExist) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+        if (otpExist.otp !== otp) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
 
-    await OtpModel.deleteOne({ email });
+        await OtpModel.deleteOne({ email });
 
-    return res.status(200).json({ message: "OTP verified successfully" });
+        return res.status(200).json({ message: "OTP verified successfully" });
+    } catch (error) {
+        return res.status(500).json({ message: "OTP verification failed" });
+    }
 };

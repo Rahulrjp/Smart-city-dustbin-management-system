@@ -34,7 +34,7 @@ method :- post
 
 payload :- email
 
-not working in production. need to resolve
+❌ (Note: Nodemailer/SMTP configuration issue) Not working in production. need to resolve
 
 ## *Otp verification:-*
 

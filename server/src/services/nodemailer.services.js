@@ -11,8 +11,6 @@ const transporter = createTransport({
 
 const sendMail = (email, otp) => {
 
-    console.log(process.env.ORIGIN_EMAIL, process.env.EMAIL_APP_PASSWORD);
-
     const mailOptions = {
         from: process.env.ORIGIN_EMAIL,       // sender address
         to: email,       // recipient address
