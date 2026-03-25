@@ -77,7 +77,7 @@ method :- delete
 
 payload :- none
 
-# BIN ENDPOINTS
+# IoT ENDPOINTS
 
 ## *Get ESP-32 data continuously after some interval:-*
 
@@ -88,6 +88,8 @@ endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/bin/es
 method :- patch
 
 payload :- fill, distance, binId (sent by ESP-32 module)
+
+# BIN ENDPOINTS
 
 ## *Create Bin:-*
 
@@ -105,10 +107,29 @@ method :- get
 
 payload :- none/binid
 
-## *Create Bin:-*
+## *Delete a specific Bin:-*
 
-endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/bin/create
+endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/bin/delete
 
-method :- post
+method :- delete
 
-payload :- location, binHeight, binId
+payload :- binId
+
+## DRIVER ENDPOINTS
+
+## *Get all drivers:-*
+
+endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/drivers
+
+method :- get
+
+payload :- none
+
+## *Get all drivers:-*
+
+endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/driver/:driverId
+
+method :- get
+
+payload :- none
+

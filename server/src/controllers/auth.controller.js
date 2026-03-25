@@ -1,5 +1,4 @@
 import OtpModel from "../models/OtpSchema.js";
-import UserModel from "../models/UserSchema.js";
 import { authenticateUser, generateOtp, hashPassword, verifyPassword } from "../services/auth.services.js";
 import { createUser, getUserByEmail } from "../services/db.services.js";
 import sendMail from "../services/nodemailer.services.js";
@@ -16,6 +15,8 @@ export const registerUser = async (req, res) => {
 
         const user = await createUser(name, email.toLowerCase(), role, hashedPassword);
 
+        const token = await authenticateUser(req, res, user);
+
         return res.status(201).json({
             message: "User registered successfully",
             user: {
@@ -23,7 +24,9 @@ export const registerUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-            }
+            },
+            isLoggedIn: true,
+            accessToken: token,
         });
     } catch (error) {
         console.error("Error registering user:", error);

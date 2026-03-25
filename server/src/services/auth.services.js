@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import sessionModel from '../models/SessionSchema.js';
+import SessionModel from '../models/SessionSchema.js';
 import { getUserByEmail } from './db.services.js';
 
 export const hashPassword = async (password) => {
@@ -34,13 +34,13 @@ export const createSessionId = () => {
     return Math.random().toString(36).substring(2, 15);
 }
 
-export const createSession = async ({ sessionId, username, userAgent, ip }) => {
-    const session = await sessionModel.create({ sessionId, username, userAgent, ip })
+export const createSession = async ({ sessionId, email, userAgent, ip }) => {
+    const session = await SessionModel.create({ sessionId, email, userAgent, ip })
     return session;
 }
 
 export const findSessionById = async (sessionId) => {
-    const session = await sessionModel.findOne({ sessionId })
+    const session = await SessionModel.findOne({ sessionId })
     return session;
 }
 
@@ -84,12 +84,12 @@ export const regenerateTokens = async (refreshToken) => {
 
 export const authenticateUser = async (req, res, user) => {
 
-    const session = await sessionModel.create({
+    const session = await SessionModel.create({
         sessionId: createSessionId(),
         email: user.email,
         userAgent: req.headers['user-agent'],
         ip: req.ip
-    })
+    });
     const accessToken = createAccessToken({
         id: user._id,
         name: user.name,
