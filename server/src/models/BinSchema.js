@@ -49,7 +49,7 @@ const BinSchema = new mongoose.Schema({
     status: {
         type: String,
         enum: ["EMPTY", "PARTIAL", "FULL", "OVERFLOW"],
-        default: 'Empty'
+        default: 'EMPTY'
     },
     lastUpdated: {
         type: Date,
