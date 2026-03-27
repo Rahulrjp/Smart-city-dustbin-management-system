@@ -17,9 +17,7 @@ export const createBin = async (req, res) => {
 
     const binData = {
         binNumber,
-        location: {
-            coordinates: [location.lng, location.lat]
-        },
+        location,
         totalHeight: {
             value: binHeight,
         },
