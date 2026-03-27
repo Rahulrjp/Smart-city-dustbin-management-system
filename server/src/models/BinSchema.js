@@ -1,14 +1,17 @@
 import mongoose from "mongoose";
 
 const BinSchema = new mongoose.Schema({
-    binId: {
+    binNumber: {
         type: String,
         required: true,
         unique: true
     },
     location: {
-        type: String,
-        required: true
+        type: { type: String, default: "Point" },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
     },
     fill: {
         value: {
@@ -45,7 +48,7 @@ const BinSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Empty', 'Almost Half Full', 'Half Full', 'Almost Full', , 'Full'],
+        enum: ["EMPTY", "PARTIAL", "FULL", "OVERFLOW"],
         default: 'Empty'
     },
     lastUpdated: {
@@ -53,6 +56,9 @@ const BinSchema = new mongoose.Schema({
         default: Date.now
     },
 })
+
+BinSchema.index({ location: "2dsphere" });
+// BinDataSchema.index({ timestamp: 1 }, { expireAfterSeconds: 2592000 }); // 30 days
 
 const BinModel = mongoose.model('Bin', BinSchema);
 

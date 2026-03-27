@@ -3,8 +3,11 @@ import { createBin, deleteBin, getBinData } from '../controllers/bin.controller.
 
 const router = Router();
 
-router.route('/bin/create').post(createBin);
-router.route('/bin/:binId').get(getBinData);
-router.route('/bin/delete').delete(deleteBin);
+router.route('/').post(createBin);
+// router.route('/').get(getALlBins);
+router.route('/:binId').get(getBinData);
+router.route('/:binId').delete(deleteBin);
 
-export const binRouter = router;
+const binRouter = router;
+
+export default binRouter;

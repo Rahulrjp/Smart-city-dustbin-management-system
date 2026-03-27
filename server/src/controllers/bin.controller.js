@@ -1,4 +1,4 @@
-import BinModel from "../models/Bin.Schema.js";
+import BinModel from "../models/BinSchema.js";
 import { getBinById } from "../services/db.services.js";
 
 export const getBinData = async (req, res) => {
@@ -13,11 +13,14 @@ export const getBinData = async (req, res) => {
 }
 
 export const createBin = async (req, res) => {
-    const { location, binHeight, binId } = req.body;
+    const { location, binHeight, binNumber } = req.body;
 
     const binData = {
-        binId,
-        location,
+        binNumber,
+        location: {
+            lat: location.lat,
+            long: location.long
+        },
         totalHeight: {
             value: binHeight,
         },
@@ -35,7 +38,7 @@ export const createBin = async (req, res) => {
 }
 
 export const deleteBin = async (req, res) => {
-    const { binId } = req.body;
+    const { binId } = req.params;
 
     try {
         const bin = await BinModel.findOneAndDelete({ binId });

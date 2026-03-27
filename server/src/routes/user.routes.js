@@ -3,10 +3,10 @@ import { deleteUser, getUserById, getUsers, updateUser } from "../controllers/us
 
 const router = Router();
 
-router.route('/users').get(getUsers);
-router.route('/user/current').get(getUserById);
-router.route('/user/update').patch(updateUser);
-router.route('/user/delete').delete(deleteUser);
+router.route('/').get(getUsers);
+router.route('/current').get(getUserById);
+router.route('/').patch(updateUser);
+router.route('/').delete(deleteUser);
 
 const userRouter = router;
 

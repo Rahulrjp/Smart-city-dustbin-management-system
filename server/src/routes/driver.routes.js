@@ -1,15 +1,21 @@
 import { Router } from "express";
-import { getAllDrivers, getDriverById } from "../controllers/driver.controller.js";
+import {
+    getAllDrivers,
+    getDriverById,
+    updateDriverStatus,
+    createDriver
+} from "../controllers/driver.controller.js";
 
 const router = Router();
 
-router.route('/drivers').get(getAllDrivers);
-router.route('/driver/:driverId').get(getDriverById);
+router.route('/').get(getAllDrivers);
 
+router.route('/').post(createDriver);
 
-// POST / api / drivers / location
-// GET / api / drivers / location /: id
-//to be added
+router.route('/:driverId').get(getDriverById);
+
+// PUT /api/drivers/:id/status
+router.route("/:driverId/status").patch(updateDriverStatus);
 
 const driverRouter = router;
 

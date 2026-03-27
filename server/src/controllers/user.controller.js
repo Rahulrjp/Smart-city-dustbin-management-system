@@ -11,7 +11,7 @@ export const getUsers = async (req, res) => {
 }
 
 export const getUserById = async (req, res) => {
-    const id = req.user._id;
+    const id = req.params.id;
 
     try {
         const user = await UserModel.findById(id).select("-password");

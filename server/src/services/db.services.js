@@ -1,4 +1,4 @@
-import BinModel from "../models/Bin.Schema.js";
+import BinModel from "../models/BinSchema.js";
 import UserModel from "../models/UserSchema.js"
 
 export const getUserByEmail = async (email, includePassword = false) => {
@@ -21,6 +21,6 @@ export const createUser = async (name, email, role, password) => {
 }
 
 export const getBinById = async (binId) => {
-    const bin = await BinModel.findOne({ binId });
+    const bin = await BinModel.findOne({ _id: binId });
     return bin;
 }
