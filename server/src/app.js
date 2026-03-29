@@ -16,7 +16,10 @@ import routeRouter from './routes/route.routes.js';
 const app = express();
 connectDB();
 
-app.use(cors({}));
+app.use(cors({
+    credentials: true,
+    origin: "https://smart-city-dustbin-management.vercel.app/",
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
