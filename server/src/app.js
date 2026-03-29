@@ -17,8 +17,8 @@ const app = express();
 connectDB();
 
 app.use(cors({
+    origin: "https://smart-city-dustbin-management.vercel.app",
     credentials: true,
-    origin: "https://smart-city-dustbin-management.vercel.app/",
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
