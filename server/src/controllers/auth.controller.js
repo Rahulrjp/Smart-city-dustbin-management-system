@@ -1,5 +1,5 @@
 import OtpModel from "../models/OtpSchema.js";
-import { authenticateUser, generateOtp, hashPassword, verifyPassword } from "../services/auth.services.js";
+import { authenticateUser, deleteSession, generateOtp, hashPassword, verifyJwtToken, verifyPassword } from "../services/auth.services.js";
 import { createUser, getUserByEmail } from "../services/db.services.js";
 import sendMail from "../services/nodemailer.services.js";
 
@@ -73,11 +73,15 @@ export const logoutUser = async (req, res) => {
         httpOnly: true,
         sameSite: 'none'
     }
-
-    res.clearCookie('access_token', { ...baseConfig });
-    res.clearCookie('refresh_token', { ...baseConfig });
-
-    return res.status(200).json({ message: "Logout successful" });
+    const sessionId = verifyJwtToken(req.cookies.refresh_token).sessionId;
+    try {
+        await deleteSession(sessionId);
+        res.clearCookie('access_token', { ...baseConfig });
+        res.clearCookie('refresh_token', { ...baseConfig });
+        return res.status(200).json({ message: "Logout successful" });
+    } catch (error) {
+        return res.status(500).json({ message: "Logout failed" });
+    }
 }
 
 export const sendOtp = async (req, res) => {

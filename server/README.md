@@ -22,7 +22,7 @@ payload :- name, email
 
 endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/v1/auth/logout
 
-method :- get
+method :- delete
 
 payload :- none
 

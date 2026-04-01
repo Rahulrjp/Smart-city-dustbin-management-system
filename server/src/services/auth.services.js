@@ -39,6 +39,11 @@ export const createSession = async ({ sessionId, email, userAgent, ip }) => {
     return session;
 }
 
+export const deleteSession = async (sessionId) => {
+    const session = await SessionModel.findOneAndDelete({ sessionId });
+    return session;
+}
+
 export const findSessionById = async (sessionId) => {
     const session = await SessionModel.findOne({ sessionId })
     return session;
@@ -90,12 +95,14 @@ export const authenticateUser = async (req, res, user) => {
         userAgent: req.headers['user-agent'],
         ip: req.ip
     });
+
     const accessToken = createAccessToken({
         id: user._id,
         name: user.name,
         email: user.email,
         sessionId: session.sessionId,
     });
+
     const refreshToken = createRefreshToken({ sessionId: session.sessionId });
 
     const baseConfig = {
