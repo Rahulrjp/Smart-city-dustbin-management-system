@@ -36,10 +36,11 @@ const Login = ({ onRegister }) => {
 
         try {
             setIsLoading(true);
-            const url = `${import.meta.env.VITE_SERVER_BASE_URL}/api/v1/auth/login`;
+            const url = `${import.meta.env.VITE_SERVER_BASE_URL}/v1/auth/login`;
             const res = await axios.post(url, {
                 email: username,
                 password: password,
+                role: role,
             },
                 {
                     withCredentials: true,
@@ -47,7 +48,11 @@ const Login = ({ onRegister }) => {
             );
             setUsername('');
             setPassword('');
-            navigate('/dashboard/driver');
+            if (role === 'admin') {
+                navigate('/dashboard/admin');
+            } else {
+                navigate('/dashboard/driver');
+            }
         } catch (error) {
             setFormMessage(`Login failed: ${error?.response?.data?.message || error?.message || 'Unexpected error occurred'}`);
         } finally {

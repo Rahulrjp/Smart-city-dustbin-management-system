@@ -2,8 +2,10 @@ import { Route, Routes } from 'react-router-dom';
 import './App.css'
 import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import DriverDashboard from './pages/DriverDashboard';
+// import AdminDashboard from './pages/AdminDashboard';
+// import DriverDashboard from './pages/DriverDashboard';
+import DriverDashboard from './testing/DriverDashboard';
+import AdminDashboard from './testing/AdminDashboard';
 
 function App() {
 

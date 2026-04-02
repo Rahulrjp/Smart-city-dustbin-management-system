@@ -13,7 +13,8 @@ export const AuthProvider = ({ children }) => {
         try {
             const res = await axios.get(url, { withCredentials: true });
             setUser(res.data);
-            console.log('User data fetched successfully: ', res.data);
+            console.log("User fetched successfully:");
+            console.table(res.data);
         } catch (error) {
             setUser(null);
         }

@@ -1,4 +1,5 @@
 import OtpModel from "../models/OtpSchema.js";
+import UserModel from "../models/UserSchema.js";
 import { authenticateUser, deleteSession, generateOtp, hashPassword, verifyJwtToken, verifyPassword } from "../services/auth.services.js";
 import { createUser, getUserByEmail } from "../services/db.services.js";
 import sendMail from "../services/nodemailer.services.js";
@@ -35,10 +36,10 @@ export const registerUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     try {
-        const userExist = await getUserByEmail(email, true);
+        const userExist = await UserModel.findOne({ email: email.toLowerCase(), role });
         if (!userExist || !(await verifyPassword(password, userExist.password))) {
             return res.status(401).json({ message: "Invalid username or password" });
         }

@@ -64,11 +64,12 @@ const DriverDashboard = () => {
         const parsedLocation = parseLocation(serverBin.location);
         const fillValue = Number(serverBin.fill?.value ?? serverBin.fill ?? 0);
         return {
-            id: serverBin.binId || serverBin.id || `BIN-${index + 1}`,
+            id: serverBin._id || serverBin.id,
+            binNumber: serverBin.binNumber || `BIN-${index + 1}`,
             fill: Number.isFinite(fillValue) ? fillValue : 0,
-            lat: Number(serverBin.lat ?? serverBin.location?.lat ?? parsedLocation.lat ?? 20.2961),
-            lng: Number(serverBin.lng ?? serverBin.location?.lng ?? parsedLocation.lng ?? 85.8245),
-            pickedUp: Boolean(serverBin.pickedUp || serverBin.isCollected || serverBin.collected),
+            lat: Number(serverBin.location.coordinates[0] ?? serverBin.location?.lat ?? parsedLocation.lat ?? 20.2961),
+            lng: Number(serverBin.location.coordinates[1] ?? serverBin.location?.lng ?? parsedLocation.lng ?? 85.8245),
+            // pickedUp: Boolean(serverBin.pickedUp || serverBin.isCollected || serverBin.collected),
             updatedAt: serverBin.lastUpdated || serverBin.updatedAt || Date.now(),
         };
     }, []);
@@ -77,22 +78,11 @@ const DriverDashboard = () => {
         try {
             const url = `${import.meta.env.VITE_SERVER_BASE_URL}/api/bins`;
             const res = await axios.get(url, { withCredentials: true });
-            const payload = res.data;
+            const bins = res.data.bins;
 
-            const serverBins = Array.isArray(payload?.bins)
-                ? payload.bins
-                : Array.isArray(payload?.data?.bins)
-                    ? payload.data.bins
-                    : Array.isArray(payload?.data)
-                        ? payload.data
-                        : Array.isArray(payload)
-                            ? payload
-                            : [];
-
-            const normalized = serverBins.map((bin, index) => normalizeBin(bin, index));
-            setLiveBins(normalized);
-
-            console.log("Fetched and normalized bins data:", normalized);
+            console.log("Raw bins data from server:", bins);
+            setLiveBins([normalizeBin(bins[0], 0)]);
+            console.log("Normalized bins data:", liveBins);
         } catch (error) {
             console.error("Error fetching bins data:", error);
         }
@@ -226,7 +216,7 @@ const DriverDashboard = () => {
                                 className="rounded-lg border border-(--color-accent-20) bg-(--color-surface) px-3 py-2.5 flex items-center justify-between gap-3"
                             >
                                 <div>
-                                    <p className="font-semibold text-(--color-text)">Stop {index + 1}: {bin.id}</p>
+                                    <p className="font-semibold text-(--color-text)">Stop {index + 1}: {bin.binNumber}</p>
                                     <p className="text-sm text-(--color-text-muted)">Fill Level {bin.fill}%</p>
                                 </div>
                                 {bin.pickedUp ? (
@@ -265,7 +255,7 @@ const DriverDashboard = () => {
                 ) : null}
 
                 <aside
-                    className={`fixed inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col transform border-r border-(--color-accent-20) bg-(--color-card-95) backdrop-blur-sm transition-transform duration-300 lg:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+                    className={`fixed inset-y-0 left-0 top-0 bottom-0 flex w-72 max-w-[85vw] flex-col transform border-r border-(--color-accent-20) bg-(--color-card-95) backdrop-blur-sm transition-transform duration-300 lg:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
                         }`}
                     style={{ zIndex: 1300 }}
                 >

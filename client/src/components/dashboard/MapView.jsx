@@ -26,6 +26,11 @@ const MapView = ({ bins, routeBins, driverLocation }) => {
     );
 
     useEffect(() => {
+        console.log("Route Bins : ", routeBins);
+        console.log("Route points : ", routePoints);
+        console.log("Route with driver : ", routeWithDriver);
+
+
         const fetchRoadRoute = async () => {
             if (routeWithDriver.length < 2) {
                 setRoadRoute([]);
@@ -68,7 +73,12 @@ const MapView = ({ bins, routeBins, driverLocation }) => {
     };
 
     return (
-        <MapContainer center={[20.2412658, 85.757551]} zoom={14} style={{ height: "100%", width: "100%" }}>
+        <MapContainer
+            center={[20.2412658, 85.757551]}
+            zoom={14}
+            style={{ height: "100%", width: "100%" }}
+            scrollWheelZoom={true}   // ✅ enable mouse wheel zoom
+            touchZoom={true} >
 
             <TileLayer
                 attribution="&copy; OpenStreetMap contributors"
@@ -88,7 +98,7 @@ const MapView = ({ bins, routeBins, driverLocation }) => {
                     icon={binIcon}
                     key={bin.id} position={[bin.lat, bin.lng]}>
                     <Popup>
-                        <strong>{bin.id}</strong><br />
+                        <strong>{bin.binNumber}</strong><br />
                         Fill: {bin.fill}%<br />
                         Status: {bin.pickedUp ? "Picked Up" : getStatusLabel(bin.fill)}
                     </Popup>
