@@ -1,109 +1,50 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import MapView from "../components/dashboard/MapView";
-import { useAuth } from "../context/AuthContext";
-import axios from "axios";
-
-
-const driverSidebarItems = ["Today's Route", "Live Map", "Alerts"];
-
-const parseLocation = (rawLocation) => {
-    if (typeof rawLocation !== "string") return { lat: null, lng: null };
-    const [latStr, lngStr] = rawLocation.split(",").map((v) => v.trim());
-    const parsedLat = Number(latStr);
-    const parsedLng = Number(lngStr);
-    return {
-        lat: Number.isFinite(parsedLat) ? parsedLat : null,
-        lng: Number.isFinite(parsedLng) ? parsedLng : null,
-    };
-};
+import { useState, useEffect, useCallback } from 'react';
+import {
+    Truck,
+    Trash2,
+    Bell,
+    Navigation,
+    CheckCircle2,
+    AlertTriangle,
+    Settings,
+    LogOut,
+    Menu,
+    X,
+    User2,
+} from 'lucide-react';
+import SidebarLink from '../components/dashboard/driver/SidebarLink.jsx';
+import SettingsView from '../components/dashboard/driver/SettingsView.jsx';
+import NotificationsView from '../components/dashboard/driver/NotificationView.jsx';
+import AlertsView from '../components/dashboard/driver/AlertsView.jsx';
+import Overview from '../components/dashboard/driver/Overview.jsx';
+import SmartRoute from '../components/dashboard/driver/SmartRoute.jsx';
+import TaskList from '../components/dashboard/driver/TaskList.jsx';
+import { tasks, systemAlerts, notifications } from '../data/mockDriverData.js';
+import axios from 'axios';
+import { getDriverProfile, handleLogout } from '../utils/api.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const DriverDashboard = () => {
 
     const { user } = useAuth();
 
-    const navigate = useNavigate();
-    const [liveBins, setLiveBins] = useState([]);
-    const [assignedRouteBins, setAssignedRouteBins] = useState([]);
-    const [routeError, setRouteError] = useState("");
-    const [activeSection, setActiveSection] = useState("Today's Route");
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('overview');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [vehicleNumber, setVehicleNumber] = useState("");
     const [driverProfile, setDriverProfile] = useState({});
-    const hasCheckedSession = useRef(false);
-    const [driverLocation, setDriverLocation] = useState({ lat: 20.2961, lng: 85.8245 });
-    const sortedByPriority = useMemo(
-        () => [...liveBins].filter((bin) => !bin.pickedUp).sort((a, b) => b.fill - a.fill),
-        [liveBins]
-    );
-
-    const alerts = useMemo(
-        () =>
-            sortedByPriority.slice(0, 5).map((bin, index) => ({
-                id: bin.id,
-                fill: bin.fill,
-                zone: `Zone ${String.fromCharCode(65 + (index % 4))}`,
-                time: `${index + 1}h ago`,
-            })),
-        [sortedByPriority]
-    );
-
-    const driverStops = useMemo(() => {
-        if (assignedRouteBins.length > 0) {
-            return assignedRouteBins.filter((bin) => !bin.pickedUp);
-        }
-        return sortedByPriority.slice(0, 8);
-    }, [assignedRouteBins, sortedByPriority]);
-
-
-    const completedStops = driverStops.filter((bin) => bin.pickedUp).length;
-    const progress = driverStops.length === 0 ? 0 : Math.round((completedStops / driverStops.length) * 100);
-
-    const normalizeBin = useCallback((serverBin, index) => {
-        const parsedLocation = parseLocation(serverBin.location);
-        const fillValue = Number(serverBin.fill?.value ?? serverBin.fill ?? 0);
-        return {
-            id: serverBin._id || serverBin.id,
-            binNumber: serverBin.binNumber || `BIN-${index + 1}`,
-            fill: Number.isFinite(fillValue) ? fillValue : 0,
-            lat: Number(serverBin.location.coordinates[0] ?? serverBin.location?.lat ?? parsedLocation.lat ?? 20.2961),
-            lng: Number(serverBin.location.coordinates[1] ?? serverBin.location?.lng ?? parsedLocation.lng ?? 85.8245),
-            // pickedUp: Boolean(serverBin.pickedUp || serverBin.isCollected || serverBin.collected),
-            updatedAt: serverBin.lastUpdated || serverBin.updatedAt || Date.now(),
-        };
-    }, []);
-
-    const fetchBinsData = useCallback(async () => {
-        try {
-            const url = `${import.meta.env.VITE_SERVER_BASE_URL}/api/bins`;
-            const res = await axios.get(url, { withCredentials: true });
-            const bins = res.data.bins;
-
-            console.log("Raw bins data from server:", bins);
-            setLiveBins([normalizeBin(bins[0], 0)]);
-            console.log("Normalized bins data:", liveBins);
-        } catch (error) {
-            console.error("Error fetching bins data:", error);
-        }
-    }, [normalizeBin]);
-
-    const fetchAssignedRoute = useCallback(async () => {
-
-    }, []);
 
     const fetchDriverProfile = useCallback(async () => {
-        // console.log("Fetching driver profile for user ID:", user?._id);
         try {
-            const url = `${import.meta.env.VITE_SERVER_BASE_URL}/api/drivers/users/${user?._id}`;
-            const res = await axios.get(url, { withCredentials: true });
+            console.log("Fetching driver profile for user ID:", user?._id);
+            const driverData = await getDriverProfile(user?._id);
 
-            // console.log("Driver profile response:", res.data);
-            if (res.data) {
-                setDriverProfile(res.data);
-            }
-            setVehicleNumber(res.data?.vehicleNumber || "");
-            // console.log("Driver profile set to:", res.data);
+            // update state
+            setDriverProfile(driverData);
+            setVehicleNumber(driverData?.vehicleNumber || "");
+
+            // log raw API response
+            console.log("Fetched driver data:", driverData);
         } catch (error) {
             console.error("Error fetching driver profile:", error);
         }
@@ -113,257 +54,74 @@ const DriverDashboard = () => {
         fetchDriverProfile();
     }, [user]);
 
-    useEffect(() => {
-        fetchBinsData();
 
-        const intervalId = setInterval(fetchBinsData, 30000); // Poll every 30 seconds
-        return () => clearInterval(intervalId); // Cleanup interval on unmount
-    }, [fetchBinsData]);
-
-    useEffect(() => {
-        const watchId = navigator.geolocation.watchPosition(
-            (position) => {
-                setDriverLocation({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                });
-                console.log("Updated driver location:", position.coords);
-            },
-            (error) => {
-                console.error("Error watching location:", error);
-            },
-            { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
-        );
-
-        // cleanup when component unmounts
-        return () => navigator.geolocation.clearWatch(watchId);
-    }, []);
-
-    const handlePickup = async (binId) => {
-
-    };
-
-    const handleLogout = async () => {
-        try {
-            const url = `${import.meta.env.VITE_SERVER_BASE_URL}/api/v1/auth/logout`;
-            await axios.delete(url, { withCredentials: true });
-            navigate("/");
-        } catch (error) {
-            console.error("Error during logout:", error);
-        }
-    };
-
-    const renderSection = () => {
-        if (activeSection === "Live Map") {
-            return (
-                <section className="rounded-2xl border border-(--color-accent-25) bg-(--color-card-90) p-4 shadow-lg">
-                    <h2 className="text-xl font-bold text-(--color-text) mb-3">Live Navigation</h2>
-                    <div className="h-110 overflow-hidden rounded-xl border border-(--color-accent-25)">
-                        <MapView bins={liveBins} routeBins={driverStops} driverLocation={driverLocation} />
-                    </div>
-                </section>
-            );
-        }
-
-        if (activeSection === "Alerts") {
-            return (
-                <section className="rounded-2xl border border-(--color-accent-25) bg-(--color-card-90) p-4 shadow-lg">
-                    <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-(--color-text)">Route Alerts</h2>
-                        <span className="rounded-full bg-(--color-primary-20) px-2 py-0.5 text-xs font-bold text-(--color-primary)">
-                            {alerts.length} active
-                        </span>
-                    </div>
-                    <div className="space-y-2.5">
-                        {alerts.map((alert) => (
-                            <div key={alert.id} className="rounded-lg border border-(--color-accent-20) bg-(--color-surface) p-3">
-                                <p className="font-semibold text-(--color-text)">{alert.id} - Fill {alert.fill}%</p>
-                                <p className="text-sm text-(--color-text-muted)">{alert.zone}</p>
-                                <p className="text-xs text-(--color-text-soft)">{alert.time}</p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            );
-        }
-
-        return (
-            <div className="flex flex-col gap-4">
-                <section className="xl:col-span-2 rounded-2xl border border-(--color-accent-25) bg-(--color-card-90) p-4 shadow-lg">
-                    <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-(--color-text)">Today's Route</h2>
-                        <span className="rounded-full bg-(--color-primary-20) px-2.5 py-1 text-xs font-bold text-(--color-primary)">
-                            LIVE
-                        </span>
-                    </div>
-
-                    <div className="mb-4 rounded-xl border border-(--color-accent-20) bg-(--color-surface) p-3">
-                        <div className="mb-1 flex items-center justify-between text-sm text-(--color-text-muted)">
-                            <span>Route Progress</span>
-                            <span className="font-semibold">{progress}% complete</span>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-(--color-card-hover)">
-                            <div className="h-full bg-(--color-primary)" style={{ width: `${progress}%` }} />
-                        </div>
-                    </div>
-
-                    {routeError ? <p className="mb-3 text-sm text-red-400">{routeError}</p> : null}
-
-                    <div className="space-y-2.5">
-                        {driverStops.map((bin, index) => (
-                            <div
-                                key={bin.id}
-                                className="rounded-lg border border-(--color-accent-20) bg-(--color-surface) px-3 py-2.5 flex items-center justify-between gap-3"
-                            >
-                                <div>
-                                    <p className="font-semibold text-(--color-text)">Stop {index + 1}: {bin.binNumber}</p>
-                                    <p className="text-sm text-(--color-text-muted)">Fill Level {bin.fill}%</p>
-                                </div>
-                                {bin.pickedUp ? (
-                                    <span className="rounded-full bg-(--color-card-hover) px-2.5 py-1 text-xs font-bold text-(--color-primary)">
-                                        Done
-                                    </span>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={() => handlePickup(bin.id)}
-                                        className="rounded-lg bg-(--color-primary) px-3 py-1.5 text-xs font-semibold text-(--color-text)"
-                                    >
-                                        Mark Picked Up
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <section className="rounded-2xl border border-(--color-accent-25) bg-(--color-card-90) p-4 shadow-lg">
-                    <h2 className="text-xl font-bold text-(--color-text) mb-3">Live Navigation</h2>
-                    <div className="h-96 overflow-hidden rounded-xl border border-(--color-accent-25)">
-                        <MapView bins={liveBins} routeBins={driverStops} driverLocation={driverLocation} />
-                    </div>
-                </section>
-            </div>
-        );
-    };
+    // useEffect(() => {
+    //     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    //     return () => clearInterval(timer);
+    // }, []);
 
     return (
-        <div className="min-h-screen w-full bg-transparent text-(--color-text)">
-            <div className="flex min-h-screen">
-                {mobileMenuOpen ? (
-                    <div className="fixed inset-0 bg-(--color-overlay) lg:hidden" style={{ zIndex: 1200 }} onClick={() => setMobileMenuOpen(false)} />
-                ) : null}
-
-                <aside
-                    className={`fixed inset-y-0 left-0 top-0 bottom-0 flex w-72 max-w-[85vw] flex-col transform border-r border-(--color-accent-20) bg-(--color-card-95) backdrop-blur-sm transition-transform duration-300 lg:hidden ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-                        }`}
-                    style={{ zIndex: 1300 }}
-                >
-                    <div className="flex items-center justify-between border-b border-(--color-accent-15) p-4">
-                        <h2 className="text-lg font-bold text-(--color-text)">Smart Waste Management System</h2>
-                        <button
-                            type="button"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="rounded-md border border-(--color-accent-25) p-1.5 text-(--color-text-muted)"
-                            aria-label="Close navigation menu"
-                        >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6l-12 12" />
-                            </svg>
-                        </button>
+        <div className="h-screen w-screen bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden">
+            {/* HEADER */}
+            <nav className="h-16 bg-slate-900 border-b border-slate-800 px-4 sm:px-6 flex items-center justify-between z-50 shrink-0">
+                <div className="flex items-center gap-3">
+                    <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-2 hover:bg-slate-800 rounded-lg transition-all">
+                        <Menu className="w-6 h-6 text-emerald-400" />
+                    </button>
+                    <div className="flex items-center gap-2">
+                        <div className="p-1.5 bg-emerald-500/10 rounded-lg">
+                            <Trash2 className="text-emerald-400 w-6 h-6" />
+                        </div>
+                        <span className="font-bold text-lg tracking-tight uppercase">EcoClean <span className="text-emerald-400 text-xs">Driver</span></span>
                     </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <div className="text-right hidden md:block">
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{currentTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                        <p className="text-sm font-mono font-bold text-emerald-400">{currentTime.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit' })}</p>
+                    </div>
+                    <div className="h-8 w-px bg-slate-800 hidden md:block"></div>
+                    <User2 className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-emerald-500 shadow-lg shadow-emerald-500/10 cursor-pointer hover:scale-105 transition-transform" />
+                </div>
+            </nav>
 
-                    <nav className="flex-1 space-y-2 overflow-y-auto p-4">
-                        {driverSidebarItems.map((item) => (
-                            <button
-                                key={item}
-                                type="button"
-                                onClick={() => {
-                                    setActiveSection(item);
-                                    setMobileMenuOpen(false);
-                                }}
-                                className={`w-full text-left rounded-lg px-3 py-2.5 font-medium transition-colors ${activeSection === item
-                                    ? "bg-(--color-primary-25) text-(--color-text) border border-(--color-primary-40)"
-                                    : "text-(--color-text-muted) hover:bg-(--color-card-hover)"
-                                    }`}
-                            >
-                                {item}
-                            </button>
-                        ))}
-                    </nav>
-
-                    <div className="mx-4 mb-4 mt-auto rounded-xl border border-(--color-accent-20) bg-(--color-surface-soft) p-4">
-                        <p className="font-semibold text-(--color-text)">{user?.name}</p>
-                        <p className="text-sm text-(--color-text-muted)">Vehicle Number: {vehicleNumber || "-"}</p>
-                        <button
-                            type="button"
-                            onClick={handleLogout}
-                            className="mt-3 w-full rounded-lg border-2 border-(--color-accent-20) bg-(--color-card) px-3 py-2 text-sm font-semibold text-(--color-text-muted) hover:bg-(--color-card-hover)"
-                        >
-                            Log Out
+            <div className="flex flex-1 overflow-hidden">
+                {/* SIDEBAR */}
+                <aside className={`fixed inset-y-0 left-0 z-50 w-72 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex md:w-64 flex-col bg-slate-900 border-r border-slate-800 shrink-0`}>
+                    {isSidebarOpen && <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm -z-10 md:hidden" onClick={() => setIsSidebarOpen(false)}></div>}
+                    <div className="p-6 flex justify-between items-center border-b border-slate-800">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Fleet Management</span>
+                            <span className="font-bold text-white text-sm">Active Session</span>
+                        </div>
+                        <button onClick={() => setIsSidebarOpen(false)} className="md:hidden"><X className="w-5 h-5 text-slate-400" /></button>
+                    </div>
+                    <div className="flex-1 py-4 px-4 space-y-1 overflow-y-auto custom-scrollbar">
+                        <SidebarLink id="overview" icon={Truck} label="Dashboard" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
+                        <SidebarLink id="route" icon={Navigation} label="Smart Route" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
+                        <SidebarLink id="tasks" icon={CheckCircle2} label="Task List" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
+                        <SidebarLink id="alerts" icon={AlertTriangle} label="Priority Alerts" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} badge={systemAlerts.length} badgeColor="bg-red-500" />
+                        <SidebarLink id="notifications" icon={Bell} label="Notifications" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} badge={notifications.filter(n => !n.read).length} badgeColor="bg-emerald-500" />
+                        <div className="h-px bg-slate-800 mx-2 my-4"></div>
+                        <SidebarLink id="settings" icon={Settings} label="Settings" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
+                    </div>
+                    <div className="p-4 border-t border-slate-800">
+                        <button className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all font-bold"
+                            onClick={handleLogout}>
+                            <LogOut className="w-5 h-5" />
+                            <span>Logout</span>
                         </button>
                     </div>
                 </aside>
 
-                <aside className="hidden lg:flex lg:w-72 xl:w-80 flex-col border-r border-(--color-accent-20) bg-(--color-card-90) backdrop-blur-sm">
-                    <div className="p-6 border-b border-(--color-accent-15)">
-                        <h2 className="text-2xl font-bold text-(--color-text)">Smart Waste Management System</h2>
-                    </div>
-
-                    <nav className="p-4 space-y-2 flex-1">
-                        {driverSidebarItems.map((item) => (
-                            <button
-                                key={item}
-                                type="button"
-                                onClick={() => setActiveSection(item)}
-                                className={`w-full text-left rounded-lg px-3 py-2.5 font-medium transition-colors ${activeSection === item
-                                    ? "bg-(--color-primary-25) text-(--color-text) border border-(--color-primary-40)"
-                                    : "text-(--color-text-muted) hover:bg-(--color-card-hover)"
-                                    }`}
-                            >
-                                {item}
-                            </button>
-                        ))}
-                    </nav>
-
-                    <div className="m-4 rounded-xl border border-(--color-accent-20) bg-(--color-surface-soft) p-4">
-                        <p className="font-semibold text-(--color-text)">{user?.name}</p>
-                        <p className="text-sm text-(--color-text-muted)">Vehicle Number: {vehicleNumber || "-"}</p>
-                        <button
-                            type="button"
-                            onClick={handleLogout}
-                            className="mt-3 w-full rounded-lg border-2 border-(--color-accent-20) bg-(--color-card) px-3 py-2 text-sm font-semibold text-(--color-text-muted) hover:bg-(--color-card-hover)"
-                        >
-                            Log Out
-                        </button>
-                    </div>
-                </aside>
-
-                <main className="flex-1 p-4 sm:p-6 lg:p-8">
-                    <div className="mb-3 flex justify-end lg:hidden">
-                        <button
-                            type="button"
-                            onClick={() => setMobileMenuOpen(true)}
-                            className="inline-flex items-center gap-2 rounded-lg border border-(--color-accent-35) bg-(--color-card) px-3 py-2 text-sm font-semibold text-(--color-text-muted)"
-                            aria-label="Open navigation menu"
-                        >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <div className="mb-5 rounded-2xl border border-(--color-accent-25) bg-(--color-card-85) p-5 shadow-xl">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-(--color-text)">{user?.name}</h1>
-                        <p className="mt-1 text-(--color-text-muted)">
-                            Route monitoring and pickup updates
-                            <span className="ml-2 inline-block rounded-full border border-(--color-accent-35) bg-(--color-card) px-2 py-0.5 text-xs font-semibold text-(--color-text)">
-                                {currentTime.toLocaleTimeString()}
-                            </span>
-                        </p>
-                    </div>
-
-                    {renderSection()}
+                {/* MAIN CONTENT AREA */}
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar bg-slate-950">
+                    {activeTab === 'overview' && <Overview driverProfile={driverProfile} />}
+                    {activeTab === 'route' && <SmartRoute driverProfile={driverProfile} />}
+                    {activeTab === 'tasks' && <TaskList setActiveTab={setActiveTab} driverProfile={driverProfile} />}
+                    {activeTab === 'alerts' && <AlertsView setActiveTab={setActiveTab} />}
+                    {activeTab === 'notifications' && <NotificationsView />}
+                    {activeTab === 'settings' && <SettingsView driverProfile={driverProfile} setActiveTab={setActiveTab} />}
                 </main>
             </div>
         </div>

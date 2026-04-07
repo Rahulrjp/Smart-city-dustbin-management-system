@@ -1,11 +1,8 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import './App.css'
 import AuthPage from './pages/AuthPage';
-import Dashboard from './pages/Dashboard';
-// import AdminDashboard from './pages/AdminDashboard';
-// import DriverDashboard from './pages/DriverDashboard';
-import DriverDashboard from './testing/DriverDashboard';
-import AdminDashboard from './testing/AdminDashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import DriverDashboard from './pages/DriverDashboard';
 import { useAuth } from './context/AuthContext';
 import BinManagement from './components/dashboard/admin/BinManagement';
 
