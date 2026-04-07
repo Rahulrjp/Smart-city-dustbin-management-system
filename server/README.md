@@ -84,7 +84,7 @@ payload :- none
 
  ⚠️⚠️⚠️This route in only for ESP-32 module and not for frontend. Do not include in production. ⚠️⚠️⚠️
 
-endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/bins/esp-32
+endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/iot/esp-32
 
 method :- patch
 
