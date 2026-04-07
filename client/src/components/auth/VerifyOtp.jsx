@@ -35,6 +35,17 @@ const VerifyOtp = ({ setIsVerifying, regData }) => {
         }
     };
 
+    const handleResend = async () => {
+        setSeconds(59);
+        try {
+            const url = `${import.meta.env.VITE_SERVER_BASE_URL}/api/v1/auth/otp/send`;
+            await axios.post(url, { email: regData.email }, { withCredentials: true });
+        } catch (error) {
+            console.error('OTP resend failed: ', error);
+        }
+    };
+
+
     const handleVerification = async () => {
         setLoading(true);
         try {
@@ -111,6 +122,7 @@ const VerifyOtp = ({ setIsVerifying, regData }) => {
                     <button
                         disabled={seconds > 0}
                         className={`font-semibold mt-1 ${seconds > 0 ? 'text-indigo-300' : 'text-indigo-600 hover:underline'}`}
+                        onClick={handleResend}
                     >
                         Resend
                     </button>
