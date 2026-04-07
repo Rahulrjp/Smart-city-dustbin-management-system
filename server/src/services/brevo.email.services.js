@@ -3,7 +3,7 @@ import axios from 'axios';
 const sendEmail = async (targetEmail, subject, message) => {
     const data = {
         // This MUST be the Gmail address you verified in Step 1
-        sender: { name: "Smart Bin Management System", email: "kr9116708@gmail.com" },
+        sender: { name: "Smart Bin Management System", email: process.env.ORIGIN_EMAIL },
         to: [{ email: targetEmail }],
         subject: subject,
         htmlContent: `<!DOCTYPE html>
@@ -28,6 +28,7 @@ const sendEmail = async (targetEmail, subject, message) => {
     };
 
     try {
+        console.log("Api Key: ", process.env.BREVO_API_KEY);
         const response = await axios.post('https://api.brevo.com/v3/smtp/email', data, {
             headers: {
                 'api-key': process.env.BREVO_API_KEY,
