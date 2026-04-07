@@ -2,10 +2,16 @@ import { createTransport } from "nodemailer";
 
 // Create a transporter
 const transporter = createTransport({
-    service: "gmail", // You can use other services or SMTP
+    host: 'smtp.gmail.com',
+    port: 465, // Use 465 for SSL or 587 for TLS
+    secure: true, // true for 465, false for 587
     auth: {
-        user: process.env.ORIGIN_EMAIL, // your email
-        pass: process.env.EMAIL_APP_PASSWORD,     // use an app password, not your real password
+        user: process.env.ORIGIN_EMAIL,
+        pass: process.env.EMAIL_APP_PASSWORD, // Your 16-character App Password
+    },
+    // Add these settings to handle strict server environments
+    tls: {
+        rejectUnauthorized: false
     }
 });
 
