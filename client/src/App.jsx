@@ -11,7 +11,11 @@ import BinManagement from './components/dashboard/admin/BinManagement';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading } = useAuth();
-    if (loading) return <div>Loading...</div>;
+    if (loading) return <div className='w-full h-screen flex justify-center items-center bg-slate-800'>
+        <span className="loading-dots text-9xl text-red-500 font-bold" aria-hidden="true">
+            <span>.</span><span>.</span><span>.</span>
+        </span>
+    </div>;
 
     // Not logged in
     if (!user) {

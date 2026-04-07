@@ -51,6 +51,7 @@ const Register = ({ onLogin, setIsVerifying, setRegData }) => {
             return;
         }
 
+        setIsLoading(true);
         setFormMessage('');
         setRegData({ email, role, name, vehicleNumber, password });
 

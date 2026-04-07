@@ -1,12 +1,15 @@
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext';
 
 const VerifyOtp = ({ setIsVerifying, regData }) => {
+    const { getUser } = useAuth();
     const [otp, setOtp] = useState(new Array(4).fill(""));
     const [seconds, setSeconds] = useState(59);
     const inputRefs = useRef([]);
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
     // Timer Logic
     useEffect(() => {
@@ -33,6 +36,7 @@ const VerifyOtp = ({ setIsVerifying, regData }) => {
     };
 
     const handleVerification = async () => {
+        setLoading(true);
         try {
             const url = `${import.meta.env.VITE_SERVER_BASE_URL}/api/v1/auth/otp/verify`;
             const registrationUrl = `${import.meta.env.VITE_SERVER_BASE_URL}/api/v1/auth/register`;
@@ -42,12 +46,14 @@ const VerifyOtp = ({ setIsVerifying, regData }) => {
                 console.log('OTP verification successful: ', res);
                 const registrationRes = await axios.post(registrationUrl, regData, { withCredentials: true });
                 console.log('Registration successful: ', registrationRes);
+                getUser();
                 navigate(`/dashboard/${regData.role}`);
                 setIsVerifying(false);
             }
         } catch (error) {
             console.error('OTP verification failed: ', error);
         }
+        setLoading(false);
     }
 
     return (
@@ -58,7 +64,7 @@ const VerifyOtp = ({ setIsVerifying, regData }) => {
                     <h2 className="text-2xl font-bold text-gray-900">We just sent a verification code</h2>
                     <p className="text-gray-500 mt-2">
                         Enter the security code we sent to <br />
-                        <span className="text-indigo-600 font-medium">rahulrjp16@gmail.com</span>
+                        <span className="text-indigo-600 font-medium">{regData.email}</span>
                         <button
                             onClick={() => setIsVerifying(false)}
                             className="ml-2 text-indigo-400 hover:text-indigo-600">✎</button>
@@ -86,7 +92,17 @@ const VerifyOtp = ({ setIsVerifying, regData }) => {
                 {/* Submit Button */}
                 <button onClick={handleVerification} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg 
                            hover:bg-indigo-700 active:scale-[0.98] transition-all">
-                    Verify
+                    {loading ? (
+                        <span className="btn-loading">
+                            <span className="loader-circle" aria-hidden="true"></span>
+                            Verifying
+                            <span className="loading-dots" aria-hidden="true">
+                                <span>.</span><span>.</span><span>.</span>
+                            </span>
+                        </span>
+                    ) : (
+                        'Verify OTP'
+                    )}
                 </button>
 
                 {/* Footer / Resend */}

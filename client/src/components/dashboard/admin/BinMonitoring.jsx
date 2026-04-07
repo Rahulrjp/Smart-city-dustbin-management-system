@@ -56,8 +56,8 @@ const BinMonitoring = () => {
                     <div key={bin._id} className="bg-slate-900 border border-slate-800 rounded-3xl p-6 hover:border-emerald-500/50 transition-all group">
                         <div className="flex justify-between items-start mb-6">
                             <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-xl ${bin.fill.value > 80 ? 'bg-red-500/10' : 'bg-emerald-500/10'}`}>
-                                    <Trash2 className={`w-6 h-6 ${bin.fill.value > 80 ? 'text-red-500' : 'text-emerald-500'}`} />
+                                <div className={`p-2 rounded-xl ${bin.fill.value > 80 ? 'bg-red-500/10' : bin.fill.value > 50 ? 'bg-orange-500/10' : 'bg-emerald-500/10'}`}>
+                                    <Trash2 className={`w-6 h-6 ${bin.fill.value > 80 ? 'text-red-500' : bin.fill.value > 50 ? 'text-orange-400' : 'text-emerald-400'}`} />
                                 </div>
                                 <div>
                                     <p className="text-sm font-black text-white">{bin.binNumber}</p>
@@ -73,10 +73,10 @@ const BinMonitoring = () => {
                             <div>
                                 <div className="flex justify-between text-xs mb-1.5">
                                     <span className="text-slate-400">Fill Level</span>
-                                    <span className={`font-bold ${bin.fill.value > 80 ? 'text-red-500' : 'text-emerald-400'}`}>{bin.fill.value}%</span>
+                                    <span className={`font-bold ${bin.fill.value > 80 ? 'text-red-500' : bin.fill.value > 50 ? 'text-orange-400' : 'text-emerald-400'}`}>{bin.fill.value}%</span>
                                 </div>
                                 <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                                    <div className={`h-full rounded-full transition-all duration-1000 ${bin.fill.value > 80 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${bin.fill.value}%` }}></div>
+                                    <div className={`h-full rounded-full transition-all duration-1000 ${bin.fill.value > 80 ? 'bg-red-500' : bin.fill.value > 50 ? 'bg-orange-500' : 'bg-emerald-500'}`} style={{ width: `${bin.fill.value}%` }}></div>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
