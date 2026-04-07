@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Bell, ShieldCheck, Smartphone, Truck, User } from "lucide-react";
+import { ArrowRight, Bell, ShieldCheck, Smartphone, Truck, User, User2 } from "lucide-react";
 import SettingsOption from "../SettingsOption";
 
 const SettingsView = ({ driverProfile }) => {
@@ -21,7 +21,7 @@ const SettingsView = ({ driverProfile }) => {
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-8">
             <div className="flex items-center gap-6 pb-8 border-b border-slate-800">
                 <div className="relative">
-                    <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200" className="w-24 h-24 rounded-full border-4 border-emerald-500/20 object-cover" />
+                    <User2 className="w-24 h-24 rounded-full border-4 border-emerald-500/20 object-cover" />
                     <button className="absolute bottom-0 right-0 p-2 bg-emerald-500 rounded-full border-4 border-slate-900 text-slate-900"><Smartphone className="w-4 h-4" /></button>
                 </div>
                 <div>
