@@ -1,8 +1,9 @@
 import OtpModel from "../models/OtpSchema.js";
 import UserModel from "../models/UserSchema.js";
 import { authenticateUser, deleteSession, generateOtp, hashPassword, verifyJwtToken, verifyPassword } from "../services/auth.services.js";
+import sendEmail from "../services/brevo.email.services.js";
 import { createUser, getUserByEmail } from "../services/db.services.js";
-import sendMail from "../services/nodemailer.services.js";
+// import sendMail from "../services/nodemailer.services.js";
 
 export const registerUser = async (req, res) => {
     const { name, email, role, password } = req.body;
@@ -98,7 +99,8 @@ export const sendOtp = async (req, res) => {
             await OtpModel.deleteOne({ email });
         }
         const otp = generateOtp();
-        sendMail(email, otp);
+        // sendMail(email, otp);
+        await sendEmail(email, "Your OTP for Smart Bin Management System", `Your OTP is: ${otp}`);
         await OtpModel.create({ email, otp });
         return res.status(200).json({ message: "OTP sent successfully" });
     } catch (error) {
