@@ -12,21 +12,25 @@ import {
     Activity,
     ShieldCheck,
     Map as MapIcon,
+    ActivitySquare,
+    Database,
+    HardDriveUploadIcon,
 } from 'lucide-react';
-import { notifications, systemAlerts } from '../data/mockAdminData.js';
-import Overview from '../components/dashboard/admin/Overview.jsx';
-import BinMonitoring from '../components/dashboard/admin/BinMonitoring.jsx';
-import FleetManagement from '../components/dashboard/admin/FleetManagement.jsx';
-import LiveMapView from '../components/dashboard/admin/LiveMapView.jsx';
-import AlertsView from '../components/dashboard/driver/AlertsView.jsx';
-import NotificationsView from '../components/dashboard/admin/NotificationView.jsx';
-import SettingsView from '../components/dashboard/admin/SettingsView.jsx';
-import SidebarLink from '../components/dashboard/admin/SidebarLink.jsx';
-import { handleLogout } from '../utils/api.js';
 import axios from 'axios';
+import Overview from './Overview.jsx';
+import LiveMapView from './LiveMapView.jsx';
+import BinMonitoring from './BinMonitoring.jsx';
+import FleetManagement from './FleetManagement.jsx';
+import AlertsView from '../driver/AlertsView.jsx';
+import NotificationsView from './NotificationView.jsx';
+import SettingsView from './SettingsView.jsx';
+import SidebarLink from './SidebarLink.jsx';
+import { handleLogout } from '../../../utils/api.js';
+import Bins from './bin-management/Bins.jsx';
 
-const AdminDashboard = () => {
-    const [activeTab, setActiveTab] = useState('overview');
+const BinManagement = () => {
+
+    const [activeTab, setActiveTab] = useState('bins');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [drivers, setDrivers] = useState([]);
@@ -49,8 +53,6 @@ const AdminDashboard = () => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
-
-
     return (
         <div className="h-screen w-screen bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden">
             {/* NAVBAR */}
@@ -96,17 +98,10 @@ const AdminDashboard = () => {
                     </div>
 
                     <div className="flex-1 py-4 px-4 space-y-1 overflow-y-auto custom-scrollbar">
-                        <SidebarLink id="overview" icon={BarChart3} label="Dashboard" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
-                        <SidebarLink id="map" icon={MapIcon} label="Live Map" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
-                        <SidebarLink id="bins" icon={Activity} label="Bin Monitoring" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
-                        <SidebarLink id="fleet" icon={Truck} label="Fleet & Drivers" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
-
-                        <SidebarLink id="alerts" icon={AlertTriangle} label="Priority Alerts" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
-                        <SidebarLink id="notifications" icon={Bell} label="Notifications" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
-
+                        <SidebarLink id="bins" icon={ActivitySquare} label="Active bins" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
                         <div className="h-px bg-slate-800 mx-2 my-4"></div>
 
-                        <SidebarLink id="settings" icon={Settings} label="Settings" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} />
+                        {/* <SidebarLink id="settings" icon={Settings} label="Settings" active={activeTab} set={setActiveTab} close={() => setIsSidebarOpen(false)} /> */}
                     </div>
 
                     <div className="p-4 border-t border-slate-800">
@@ -120,23 +115,11 @@ const AdminDashboard = () => {
 
                 {/* MAIN SECTION (Scrollable) */}
                 <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar bg-slate-950">
-                    {activeTab === 'overview' && <Overview setActiveTab={setActiveTab} drivers={drivers} />}
-                    {activeTab === 'map' && <LiveMapView />}
-                    {activeTab === 'bins' && <BinMonitoring />}
-                    {activeTab === 'fleet' && <FleetManagement drivers={drivers} />}
-                    {activeTab === 'alerts' && <AlertsView />}
-                    {activeTab === 'notifications' && <NotificationsView />}
-                    {activeTab === 'settings' && <SettingsView setActiveTab={setActiveTab} />}
+                    {activeTab === 'bins' && <Bins setActiveTab={setActiveTab} />}
                 </main>
             </div>
         </div>
-    );
-};
+    )
+}
 
-// --- Helper UI Components ---
-
-
-
-
-
-export default AdminDashboard;
+export default BinManagement

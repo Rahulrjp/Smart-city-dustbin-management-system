@@ -9,6 +9,7 @@ export const findBinAndUpdate = async (binNumber, fill, distance) => {
         distance: {
             value: distance,
         },
+        lastUpdated: new Date(),
         status: getBinStatus(fill)
     }, { returnDocument: "after" });
 

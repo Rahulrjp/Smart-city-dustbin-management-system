@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ShieldCheck, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 
 const Login = ({ onRegister }) => {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ const Login = ({ onRegister }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [formMessage, setFormMessage] = useState('');
+    const { getUser } = useAuth();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -36,7 +38,7 @@ const Login = ({ onRegister }) => {
 
         try {
             setIsLoading(true);
-            const url = `${import.meta.env.VITE_SERVER_BASE_URL}/v1/auth/login`;
+            const url = `${import.meta.env.VITE_SERVER_BASE_URL}/api/v1/auth/login`;
             const res = await axios.post(url, {
                 email: username,
                 password: password,
@@ -46,6 +48,7 @@ const Login = ({ onRegister }) => {
                     withCredentials: true,
                 }
             );
+            getUser();
             setUsername('');
             setPassword('');
             if (role === 'admin') {
@@ -67,12 +70,12 @@ const Login = ({ onRegister }) => {
     return (
         <div className="w-full flex items-center justify-center p-4 sm:p-6 relative">
 
-            <form onSubmit={handleSubmit} className="w-full max-w-md space-y-5 relative z-10 border-2 border-(--color-accent-35) bg-(--color-card-90) backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-xl">
+            <form onSubmit={handleSubmit} className="w-full max-w-md space-y-5 relative z-10 border-2 border-(--color-accent-35) bg-slate-800 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-xl">
 
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-(--color-text) mb-2">Welcome Back</h1>
-                    <p className="text-(--color-text-muted)">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-100 mb-2">Welcome Back</h1>
+                    <p className="text-gray-100 text-sm sm:text-base font-medium">
                         Sign in to access your dashboard
                     </p>
                 </div>
@@ -91,7 +94,7 @@ const Login = ({ onRegister }) => {
                             size={24}
                             className={`mb-2 ${role === 'admin' ? 'text-(--color-primary)' : 'text-(--color-text-muted)'}`}
                         />
-                        <span className="text-(--color-text) font-semibold text-xs">Admin</span>
+                        <span className={`font-semibold text-xs ${role === 'admin' ? 'text-(--color-primary)' : 'text-(--color-text-muted)'}`}>Admin</span>
                     </div>
 
                     {/* Driver Card */}
@@ -106,13 +109,13 @@ const Login = ({ onRegister }) => {
                             size={24}
                             className={`mb-2 ${role === 'driver' ? 'text-(--color-primary)' : 'text-(--color-text-muted)'}`}
                         />
-                        <span className="text-(--color-text) font-semibold text-xs">Driver</span>
+                        <span className={`font-semibold text-xs ${role === 'driver' ? 'text-(--color-primary)' : 'text-(--color-text-muted)'}`}>Driver</span>
                     </div>
                 </div>
 
                 {/* Email */}
                 <div>
-                    <label className="block text-(--color-text-muted) text-sm font-medium mb-2 uppercase tracking-wide">
+                    <label className="block text-gray-100 text-sm font-medium mb-2 uppercase tracking-wide">
                         Email
                     </label>
                     <input
@@ -127,7 +130,7 @@ const Login = ({ onRegister }) => {
 
                 {/* Password */}
                 <div>
-                    <label className="block text-(--color-text-muted) text-sm font-medium mb-2 uppercase tracking-wide">
+                    <label className="block text-gray-100 text-sm font-medium mb-2 uppercase tracking-wide">
                         Password
                     </label>
                     <div className="relative">
@@ -185,10 +188,10 @@ const Login = ({ onRegister }) => {
                 ) : null}
 
                 {/* Register Link */}
-                <p className="text-center text-(--color-text-muted) text-sm">
+                <p className="text-center text-gray-100 text-sm">
                     Don't have an account?
                     <span
-                        className="text-(--color-text) cursor-pointer ml-1 hover:text-(--color-primary) transition-colors"
+                        className="text-green-500 cursor-pointer ml-1 hover:text-(--color-primary) transition-colors"
                         onClick={onRegister}
                     >
                         Register here

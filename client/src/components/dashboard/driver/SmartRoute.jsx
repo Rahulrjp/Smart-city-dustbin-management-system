@@ -4,73 +4,25 @@ import { useAuth } from "../../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { normalizeBin, parseLocation } from "../../../utils/utils";
-import { getBinData, getDriverProfile } from "../../../utils/api";
+import { getBinData, getDriverProfile, updateDriverLocationOnServer } from "../../../utils/api";
 
-const SmartRoute = () => {
+const SmartRoute = ({ driverProfile }) => {
 
     const { user } = useAuth();
 
-    const navigate = useNavigate();
     const [liveBins, setLiveBins] = useState([]);
-    const [assignedRouteBins, setAssignedRouteBins] = useState([]);
-    const [routeError, setRouteError] = useState("");
-    const [activeSection, setActiveSection] = useState("Today's Route");
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [currentTime, setCurrentTime] = useState(new Date());
-    const [vehicleNumber, setVehicleNumber] = useState("");
-    const [driverProfile, setDriverProfile] = useState({});
-    const hasCheckedSession = useRef(false);
+    const [directions, setDirections] = useState([]);
     const [driverLocation, setDriverLocation] = useState({ lat: 20.2961, lng: 85.8245 });
-
-    const sortedByPriority = useMemo(
-        () => [...liveBins].filter((bin) => !bin.pickedUp).sort((a, b) => b.fill - a.fill),
-        [liveBins]
-    );
-
-    const alerts = useMemo(
-        () =>
-            sortedByPriority.slice(0, 5).map((bin, index) => ({
-                id: bin.id,
-                fill: bin.fill,
-                zone: `Zone ${String.fromCharCode(65 + (index % 4))}`,
-                time: `${index + 1}h ago`,
-            })),
-        [sortedByPriority]
-    );
-
-    const driverStops = useMemo(() => {
-        if (assignedRouteBins.length > 0) {
-            return assignedRouteBins.filter((bin) => !bin.pickedUp);
-        }
-        return sortedByPriority.slice(0, 8);
-    }, [assignedRouteBins, sortedByPriority]);
 
     const fetchBinsData = useCallback(async () => {
         try {
             const bins = await getBinData();
-            setLiveBins([normalizeBin(bins[0], 0)]);
+            setLiveBins([...bins]);
             console.log("Fetched bins data:", bins);
         } catch (error) {
             console.error("Error fetching bins data:", error);
         }
     }, [normalizeBin]);
-
-
-    const fetchDriverProfile = useCallback(async () => {
-        try {
-            const driverData = await getDriverProfile(user?._id);
-            if (driverData) {
-                setDriverProfile(driverData);
-            }
-            setVehicleNumber(driverData?.vehicleNumber || "");
-        } catch (error) {
-            console.error("Error fetching driver profile:", error);
-        }
-    }, [user]);
-
-    useEffect(() => {
-        fetchDriverProfile();
-    }, [user]);
 
     useEffect(() => {
         fetchBinsData();
@@ -86,6 +38,9 @@ const SmartRoute = () => {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                 });
+
+                updateDriverLocationOnServer(driverProfile?._id, position.coords.latitude, position.coords.longitude);
+
                 console.log("Updated driver location:", driverLocation);
             },
             (error) => {
@@ -108,8 +63,8 @@ const SmartRoute = () => {
 
 
                 {/* MAP PLACEHOLDER */}
-                <div className="h-150 overflow-hidden rounded-xl border border-(--color-accent-25)">
-                    <MapView bins={liveBins} routeBins={driverStops} driverLocation={driverLocation} />
+                <div className="h-150 overflow-hidden relative  rounded-xl border border-(--color-accent-25)">
+                    <MapView bins={liveBins} driverLocation={driverLocation} directions={directions} setDirections={setDirections} />
                 </div>
 
             </div>
@@ -117,19 +72,41 @@ const SmartRoute = () => {
             <div className="bg-slate-900 rounded-3xl border border-slate-800 p-6 overflow-y-auto custom-scrollbar">
                 <h3 className="font-bold mb-6 flex items-center gap-2 text-white"><Clock className="w-4 h-4 text-emerald-400" /> Turn-by-turn Navigation</h3>
                 <div className="space-y-8">
-                    {[
-                        { dir: 'Turn Right', road: 'Main Avenue', dist: '200m', active: true },
-                        { dir: 'Keep Left', road: 'Metro Bypass', dist: '800m', active: false },
-                        { dir: 'Destination', road: 'Sector 15 Station', dist: 'Arrive', active: false },
-                    ].map((step, idx) => (
-                        <div key={idx} className={`flex gap-4 items-start relative ${step.active ? 'opacity-100' : 'opacity-40'}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 ${step.active ? 'bg-emerald-500 border-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+                    {directions.map((step, idx) => (
+                        <div
+                            key={idx}
+                            className={`flex gap-4 items-start relative ${step.active ? "opacity-100" : "opacity-40"
+                                }`}
+                        >
+                            {/* Step Number Circle */}
+                            <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 ${step.active
+                                    ? "bg-emerald-500 border-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20"
+                                    : "bg-slate-800 border-slate-700 text-slate-400"
+                                    }`}
+                            >
                                 <span className="text-xs font-black">{idx + 1}</span>
                             </div>
-                            {idx !== 2 && <div className="absolute top-8 left-4 w-px h-8 bg-slate-800"></div>}
+
+                            {/* Vertical Line (except last step) */}
+                            {idx !== directions.length - 1 && (
+                                <div className="absolute top-8 left-4 w-px h-8 bg-slate-800"></div>
+                            )}
+
+                            {/* Instruction */}
                             <div>
-                                <p className={`font-bold leading-none mb-1 ${step.active ? 'text-white text-lg' : 'text-slate-400'}`}>{step.dir}</p>
-                                <p className="text-xs text-slate-500">{step.road} • {step.dist}</p>
+                                <p
+                                    className={`font-bold leading-none mb-1 ${step.active
+                                        ? "text-white text-lg"
+                                        : "text-slate-400"
+                                        }`}
+                                >
+                                    {step.instruction}
+                                </p>
+
+                                <p className="text-xs text-slate-500">
+                                    • {step.distance} m
+                                </p>
                             </div>
                         </div>
                     ))}

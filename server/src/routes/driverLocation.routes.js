@@ -4,13 +4,17 @@ import {
     getDriverLocation,
     getDriverLocationHistory,
     getNearbyDrivers,
-    deleteDriverLocations
+    deleteDriverLocations,
+    getAllDriversLocations
 } from "../controllers/driverLocation.controller.js";
 
 const router = express.Router();
 
 // 📍 Add / Update driver location
-router.route("/").post(addDriverLocation);
+router.route("/location").post(addDriverLocation);
+
+// 📍 Get location of all active drivers
+router.route("/locations").get(getAllDriversLocations);
 
 // 📍 Get latest location of a driver
 router.route("/:driverId/location").get(getDriverLocation);

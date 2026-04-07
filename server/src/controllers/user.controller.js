@@ -11,7 +11,23 @@ export const getUsers = async (req, res) => {
 }
 
 export const getUserById = async (req, res) => {
-    const id = req.user._id
+    const { _id } = req.body;
+
+    try {
+        const user = await UserModel.findById(_id).select("-password");
+        return res.status(200).json(user);
+    } catch (error) {
+        return res.status(500).json({ message: "Error fetching user" });
+    }
+}
+
+
+export const getCurrentUser = async (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const id = req.user._id;
 
     try {
         const user = await UserModel.findById(id).select("-password");

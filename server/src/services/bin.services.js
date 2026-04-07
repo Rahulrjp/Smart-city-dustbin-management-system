@@ -15,6 +15,11 @@ export const getBinStatus = (fill) => {
 
 export const createAlertAndPickup = async ({ binId, message, severity }) => {
     try {
+        const pickupExist = await PickupModel.findOne({ bin: binId, status: { $in: ["pending", "accepted"] } });
+        if (pickupExist) {
+            console.log("Pickup already exists for this bin. Skipping alert and pickup creation.");
+            return { alert: null, pickup: pickupExist };
+        }
         const alert = await AlertModel.create({
             bin: binId, //objectId of bin
             message,

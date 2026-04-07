@@ -1,11 +1,33 @@
 import { Activity, AlertTriangle, Database, Loader2, PieChart, Trash2, TrendingUp, Truck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import StatCard from "../../cards/StatCard";
-import { adminStats, binData } from "../../../data/mockAdminData";
+import { adminStats } from "../../../data/mockAdminData";
+import { getAlerts, getBinData } from "../../../utils/api";
 
-const Overview = ({ setActiveTab }) => {
+const Overview = ({ setActiveTab, drivers }) => {
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [reportStatus, setReportStatus] = useState(null);
+    const [bins, setBins] = useState([]);
+
+    const [alerts, setAlerts] = useState([]);
+
+    useEffect(() => {
+        const fetchAlerts = async () => {
+            try {
+                const alertsData = await getAlerts();
+                setAlerts(alertsData);
+            } catch (error) {
+                console.error("Error fetching alerts:", error);
+            }
+        }
+
+        fetchAlerts();
+
+        const intervalId = setInterval(() => {
+            fetchAlerts();
+        }, 30000); // Poll every 30 seconds
+        return () => clearInterval(intervalId); // Cleanup interval on unmount
+    }, [])
 
     const DistributionRow = ({ label, percent, color }) => (
         <div>
@@ -32,6 +54,35 @@ const Overview = ({ setActiveTab }) => {
             setTimeout(() => setReportStatus(null), 5000);
         }, 2500);
     };
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const getBins = async () => {
+            try {
+                const data = await getBinData();
+                if (isMounted) {
+                    console.log("Fetched bins:", data); // check if data changes
+                    setBins(data); // replace state
+                }
+            } catch (err) {
+                console.error("Error fetching bins:", err);
+            }
+        };
+
+        getBins(); // run immediately
+
+        const intervalId = setInterval(() => {
+            getBins();
+        }, 10000);
+
+        return () => {
+            isMounted = false;
+            clearInterval(intervalId);
+        };
+    }, []);
+
+
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -65,9 +116,9 @@ const Overview = ({ setActiveTab }) => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <StatCard icon={Trash2} label="Total Smart Bins" value={adminStats.totalBins} color="emerald" subValue="+12 this month" />
-                <StatCard icon={Truck} label="Fleet Activity" value={adminStats.activeDrivers} color="blue" subValue="92% active now" />
-                <StatCard icon={AlertTriangle} label="Critical Alerts" value={adminStats.criticalBins} color="red" subValue="Requires attention" />
+                <StatCard icon={Trash2} label="Total Smart Bins" value={bins.length} color="emerald" subValue="+1 this month" />
+                <StatCard icon={Truck} label="Fleet Activity" value={drivers.length} color="blue" subValue="Active fleets here" />
+                <StatCard icon={AlertTriangle} label="Critical Alerts" value={alerts.length} color="red" subValue="Requires attention" />
                 <StatCard icon={TrendingUp} label="Waste Collected" value={adminStats.wasteCollected} color="purple" subValue="Monthly target: 85%" />
             </div>
 
@@ -92,24 +143,24 @@ const Overview = ({ setActiveTab }) => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-800">
-                                    {binData.map(bin => (
-                                        <tr key={bin.id} className="hover:bg-slate-800/30 transition-colors">
-                                            <td className="px-6 py-4 font-mono text-sm text-emerald-400">{bin.id}</td>
-                                            <td className="px-6 py-4 text-sm text-white font-semibold">{bin.zone}</td>
+                                    {bins.map(bin => (
+                                        <tr key={bin._id} className="hover:bg-slate-800/30 transition-colors">
+                                            <td className="px-6 py-4 font-mono text-sm text-emerald-400">{bin.binNumber}</td>
+                                            <td className="px-6 py-4 text-sm text-white font-semibold">{bin.location.area || '-'}</td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex-1 bg-slate-800 h-1.5 rounded-full min-w-15 overflow-hidden">
                                                         <div
-                                                            className={`h-full rounded-full ${bin.level > 80 ? 'bg-red-500' : 'bg-emerald-500'}`}
-                                                            style={{ width: `${bin.level}%` }}
+                                                            className={`h-full rounded-full ${bin.fill.value > 80 ? 'bg-red-500' : 'bg-emerald-500'}`}
+                                                            style={{ width: `${bin.fill.value}%` }}
                                                         />
                                                     </div>
-                                                    <span className="text-xs font-bold text-slate-300">{bin.level}%</span>
+                                                    <span className="text-xs font-bold text-slate-300">{bin.fill.value}%</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${bin.level > 80 ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
-                                                    {bin.level > 80 ? 'CRITICAL' : 'OPTIMAL'}
+                                                <span className={`px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${bin.fill.value > 80 ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                                                    {bin.fill.value > 80 ? 'CRITICAL' : 'OPTIMAL'}
                                                 </span>
                                             </td>
                                         </tr>
@@ -121,19 +172,8 @@ const Overview = ({ setActiveTab }) => {
                 </div>
 
                 <div className="space-y-6">
-                    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
-                        <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                            <PieChart className="w-4 h-4 text-blue-400" />
-                            Waste Distribution
-                        </h3>
-                        <div className="space-y-4">
-                            <DistributionRow label="Organic" percent={55} color="bg-emerald-500" />
-                            <DistributionRow label="Recyclable" percent={30} color="bg-blue-500" />
-                            <DistributionRow label="Hazardous" percent={15} color="bg-amber-500" />
-                        </div>
-                    </div>
 
-                    <div className="bg-linear-to-br from-emerald-600 to-teal-700 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/10">
+                    <div className="bg-linear-to-br from-emerald-600 to-teal-700 rounded-3xl p-6 text-white shadow-xl shadow-emerald-500/10 mt-12">
                         <h3 className="font-black text-lg mb-2">Fleet Efficiency</h3>
                         <p className="text-sm opacity-90 mb-6 leading-relaxed">Today's collection routes are 14% more efficient than last week.</p>
                         <div className="flex items-center justify-between">

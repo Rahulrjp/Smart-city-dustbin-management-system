@@ -110,6 +110,9 @@ export const sendOtp = async (req, res) => {
 export const verifyOtp = async (req, res) => {
     const { email, otp } = req.body;
 
+    console.log("Verifying OTP for email:", email);
+    console.log("Received OTP:", otp);
+
     try {
         const otpExist = await OtpModel.findOne({ email });
         if (!otpExist) {
@@ -121,7 +124,7 @@ export const verifyOtp = async (req, res) => {
 
         await OtpModel.deleteOne({ email });
 
-        return res.status(200).json({ message: "OTP verified successfully" });
+        return res.status(200).json({ message: "OTP verified successfully", verified: true });
     } catch (error) {
         return res.status(500).json({ message: "OTP verification failed" });
     }

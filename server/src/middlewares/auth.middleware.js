@@ -5,14 +5,14 @@ export const verifyAuthentication = async (req, res, next) => {
     const refreshToken = req.cookies.refresh_token
     req.user = null;
 
-    console.log("Middleware is running");
+    // console.log("Middleware is running");
 
     if (!accessToken && !refreshToken) {
         return next();
     }
     if (accessToken) {
         const decodedToken = verifyJwtToken(accessToken)
-        console.log("Decoded token from access token: ", decodedToken);
+        // console.log("Decoded token from access token: ", decodedToken);
         req.user = decodedToken;
         return next();
     }

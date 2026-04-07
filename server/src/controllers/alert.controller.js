@@ -7,7 +7,7 @@ export const getAllAlerts = async (req, res) => {
             .populate("bin")
             .sort({ createdAt: -1 });
 
-        res.json({ success: true, data: alerts });
+        res.json({ success: true, alerts });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -62,12 +62,12 @@ export const deleteAlert = async (req, res) => {
 
     try {
         await AlertModel.findByIdAndDelete(id);
-
-        res.json({
+        console.log(`Alert with ID ${id} deleted successfully.`);
+        return res.json({
             success: true,
             message: "Alert deleted successfully"
         });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: error.message });
     }
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     Truck,
     Trash2,
@@ -17,31 +17,47 @@ import NotificationsView from '../components/dashboard/driver/NotificationView';
 import AlertsView from '../components/dashboard/driver/AlertsView';
 import Overview from '../components/dashboard/driver/Overview';
 import SmartRoute from '../components/dashboard/driver/SmartRoute';
-import TaskList from '../components/items/TaskList';
+import TaskList from '../components/dashboard/driver/TaskList.jsx';
 import { tasks, systemAlerts, notifications } from '../data/mockDriverData.js';
 import axios from 'axios';
+import { getDriverProfile, handleLogout } from '../utils/api.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const DriverDashboard = () => {
+
+    const { user } = useAuth();
+
     const [activeTab, setActiveTab] = useState('overview');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [vehicleNumber, setVehicleNumber] = useState("");
+    const [driverProfile, setDriverProfile] = useState({});
+
+    const fetchDriverProfile = useCallback(async () => {
+        try {
+            console.log("Fetching driver profile for user ID:", user?._id);
+            const driverData = await getDriverProfile(user?._id);
+
+            // update state
+            setDriverProfile(driverData);
+            setVehicleNumber(driverData?.vehicleNumber || "");
+
+            // log raw API response
+            console.log("Fetched driver data:", driverData);
+        } catch (error) {
+            console.error("Error fetching driver profile:", error);
+        }
+    }, [user]);
 
     useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
+        fetchDriverProfile();
+    }, [user]);
 
-    const handleLogout = async (e) => {
-        e.preventDefault();
 
-        try {
-            const user = await axios.delete(`${import.meta.env.VITE_SERVER_BASE_URL}/v1/auth/logout`, { withCredentials: true });
-            console.log('Logout successful:', user.data);
-            window.location.href = '/';
-        } catch (error) {
-            console.error('Logout failed:', error);
-        }
-    }
+    // useEffect(() => {
+    //     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    //     return () => clearInterval(timer);
+    // }, []);
 
     return (
         <div className="h-screen w-screen bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden">
@@ -102,12 +118,12 @@ const DriverDashboard = () => {
 
                 {/* MAIN CONTENT AREA */}
                 <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar bg-slate-950">
-                    {activeTab === 'overview' && <Overview />}
-                    {activeTab === 'route' && <SmartRoute />}
-                    {activeTab === 'tasks' && <TaskList />}
-                    {activeTab === 'alerts' && <AlertsView />}
+                    {activeTab === 'overview' && <Overview driverProfile={driverProfile} />}
+                    {activeTab === 'route' && <SmartRoute driverProfile={driverProfile} />}
+                    {activeTab === 'tasks' && <TaskList setActiveTab={setActiveTab} driverProfile={driverProfile} />}
+                    {activeTab === 'alerts' && <AlertsView setActiveTab={setActiveTab} />}
                     {activeTab === 'notifications' && <NotificationsView />}
-                    {activeTab === 'settings' && <SettingsView />}
+                    {activeTab === 'settings' && <SettingsView driverProfile={driverProfile} setActiveTab={setActiveTab} />}
                 </main>
             </div>
         </div>

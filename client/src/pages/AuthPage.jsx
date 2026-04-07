@@ -10,6 +10,7 @@ const AuthPage = () => {
     const [showRegister, setShowRegister] = useState(false);
     const [isVerifying, setIsVerifying] = useState(false);
     const [user, setUser] = useState({});
+    const [regData, setRegData] = useState({});
 
     useEffect(() => {
         const getUserData = async () => {
@@ -26,10 +27,10 @@ const AuthPage = () => {
     }, [])
 
     return (
-        <div className="min-h-screen w-full flex flex-col lg:flex-row bg-transparent relative overflow-y-auto lg:overflow-hidden">
+        <div className="min-h-screen w-full flex flex-col lg:flex-row bg-slate-900 relative overflow-y-auto lg:overflow-hidden">
 
             {/* LEFT SIDE */}
-            <div className="w-full lg:w-1/2 flex flex-col px-6 sm:px-8 lg:pl-10 lg:pr-20 pt-10 lg:pt-16 pb-6 lg:pb-10 items-center lg:items-end justify-center text-(--color-text) relative z-10 overflow-hidden">
+            <div className="w-full lg:w-1/2 flex flex-col px-6 sm:px-8 lg:pl-10 lg:pr-20 pt-10 lg:pt-16 pb-6 lg:pb-10 items-center lg:items-end justify-center relative z-10 overflow-hidden">
 
                 <div className="absolute inset-0 opacity-20">
                     <div className="absolute top-20 left-20 w-72 h-72 bg-(--color-primary) rounded-full blur-3xl"></div>
@@ -39,11 +40,11 @@ const AuthPage = () => {
                 <div className="relative z-10 w-full max-w-md text-center lg:text-left">
 
                     <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
-                        <span className="text-(--color-text) lock-heading ">IoT-Based Smart Dustbin System</span>
+                        <span className="text-gray-100 lock-heading ">IoT-Based Smart Dustbin System</span>
                     </h1>
 
                     {/* Description */}
-                    <p className="text-(--color-text-muted) leading-relaxed mb-8 font-para">
+                    <p className="text-gray-100 text-base sm:text-lg leading-relaxed mb-8 font-para">
                         Real-time monitoring of dustbins across all city zones, with smart route planning and live pickup coordination for a cleaner, more efficient city.
                     </p>
 
@@ -58,7 +59,7 @@ const AuthPage = () => {
                             ].map((feature, idx) => (
                                 <div
                                     key={idx}
-                                    className="px-3 sm:px-4 py-2 bg-(--color-accent-60) backdrop-blur-sm border border-(--color-accent-35) rounded-full text-xs sm:text-sm text-(--color-text) text-center lg:text-left whitespace-nowrap"
+                                    className="px-3 sm:px-4 py-2 bg-white backdrop-blur-sm border border-(--color-accent-35) rounded-full text-xs sm:text-sm text-(--color-text) text-center lg:text-left whitespace-nowrap"
                                 >
                                     <span className="text-(--color-primary) mr-2">●</span>
                                     {feature}
@@ -77,11 +78,12 @@ const AuthPage = () => {
                 ) : (
                     <>
                         {isVerifying ? (
-                            <VerifyOtp setIsVerifying={setIsVerifying} />
+                            <VerifyOtp setIsVerifying={setIsVerifying} regData={regData} />
                         ) : (
                             <Register
                                 onLogin={() => setShowRegister(false)}
                                 setIsVerifying={setIsVerifying}
+                                setRegData={setRegData}
                             />
                         )}
                     </>

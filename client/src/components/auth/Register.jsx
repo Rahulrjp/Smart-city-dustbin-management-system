@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { ShieldCheck, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const Register = ({ onLogin, setIsVerifying }) => {
+const Register = ({ onLogin, setIsVerifying, setRegData }) => {
     const navigate = useNavigate();
     const [role, setRole] = useState('driver');
     const [name, setName] = useState('');
@@ -27,7 +28,7 @@ const Register = ({ onLogin, setIsVerifying }) => {
         }
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (isLoading) return;
@@ -51,20 +52,32 @@ const Register = ({ onLogin, setIsVerifying }) => {
         }
 
         setFormMessage('');
+        setRegData({ email, role, name, vehicleNumber, password });
 
         // Send OTP first, then register only after OTP verification succeeds.
+        try {
+            const url = `${import.meta.env.VITE_SERVER_BASE_URL}/api/v1/auth/otp/send`;
+            const verfication = await axios.post(url, { email }, { withCredentials: true });
+            console.log('OTP sent successfully: ', verfication);
+            setIsVerifying(true);
+        } catch (error) {
+            setFormMessage(`Error sending OTP: ${error?.response?.data?.message || error?.message || 'Unexpected error occurred'}`);
+        } finally {
+            setIsLoading(false);
+        }
+
 
     }
 
     return (
         <div className="w-full flex items-center justify-center p-4 sm:p-6 relative">
 
-            <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6 relative z-10 border-2 border-(--color-accent-35) bg-(--color-card-90) backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-xl">
+            <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6 relative z-10 border-2 border-(--color-accent-35) bg-slate-800 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-xl">
 
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-(--color-text) mb-2">Create Account</h1>
-                    <p className="text-(--color-text-muted)">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-100 mb-2">Create Account</h1>
+                    <p className="text-gray-100 text-sm sm:text-base font-para">
                         Register to start using SmartBin
                     </p>
                 </div>
@@ -82,7 +95,7 @@ const Register = ({ onLogin, setIsVerifying }) => {
                             size={24}
                             className={`mb-2 ${role === 'admin' ? 'text-(--color-primary)' : 'text-(--color-text-muted)'}`}
                         />
-                        <span className="text-(--color-text) font-semibold text-xs">Admin</span>
+                        <span className={`font-semibold text-xs ${role === 'admin' ? 'text-(--color-primary)' : 'text-(--color-text-muted)'}`}>Admin</span>
                     </div>
 
                     <div
@@ -96,14 +109,14 @@ const Register = ({ onLogin, setIsVerifying }) => {
                             size={24}
                             className={`mb-2 ${role === 'driver' ? 'text-(--color-primary)' : 'text-(--color-text-muted)'}`}
                         />
-                        <span className="text-(--color-text) font-semibold text-xs">Driver</span>
+                        <span className={`font-semibold text-xs ${role === 'driver' ? 'text-(--color-primary)' : 'text-(--color-text-muted)'}`}>Driver</span>
                     </div>
                 </div>
 
                 <div className="space-y-4">
                     <div className={`grid gap-4 ${role === 'driver' ? 'sm:grid-cols-2' : 'grid-cols-1'}`}>
                         <div>
-                            <label className="block text-(--color-text-muted) text-sm font-medium mb-2 uppercase tracking-wide">
+                            <label className="block text-gray-100 text-sm font-medium mb-2 uppercase tracking-wide">
                                 Full Name
                             </label>
                             <input
@@ -118,7 +131,7 @@ const Register = ({ onLogin, setIsVerifying }) => {
 
                         {role === 'driver' ? (
                             <div>
-                                <label className="block text-(--color-text-muted) text-sm font-medium mb-2 uppercase tracking-wide">
+                                <label className="block text-gray-100 text-sm font-medium mb-2 uppercase tracking-wide">
                                     Vehicle Number
                                 </label>
                                 <input
@@ -134,7 +147,7 @@ const Register = ({ onLogin, setIsVerifying }) => {
                     </div>
 
                     <div>
-                        <label className="block text-(--color-text-muted) text-sm font-medium mb-2 uppercase tracking-wide">
+                        <label className="block text-gray-100 text-sm font-medium mb-2 uppercase tracking-wide">
                             Email
                         </label>
                         <input
@@ -150,7 +163,7 @@ const Register = ({ onLogin, setIsVerifying }) => {
 
                 {/* Password */}
                 <div>
-                    <label className="block text-(--color-text-muted) text-sm font-medium mb-2 uppercase tracking-wide">
+                    <label className="block text-gray-100 text-sm font-medium mb-2 uppercase tracking-wide">
                         Password
                     </label>
                     <div className="relative">
@@ -205,10 +218,10 @@ const Register = ({ onLogin, setIsVerifying }) => {
                 ) : null}
 
                 {/* Login Link */}
-                <p className="text-center text-(--color-text-muted) text-sm">
+                <p className="text-center text-gray-100 text-sm">
                     Already have an account?
                     <span
-                        className="text-(--color-text) cursor-pointer ml-1 hover:text-(--color-primary) transition-colors"
+                        className="text-green-500 cursor-pointer ml-1 hover:text-(--color-primary) transition-colors"
                         onClick={onLogin}
                     >
                         Login

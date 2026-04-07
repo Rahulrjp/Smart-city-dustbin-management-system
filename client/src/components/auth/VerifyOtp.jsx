@@ -1,7 +1,8 @@
+import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const VerifyOtp = ({ setIsVerifying }) => {
+const VerifyOtp = ({ setIsVerifying, regData }) => {
     const [otp, setOtp] = useState(new Array(4).fill(""));
     const [seconds, setSeconds] = useState(59);
     const inputRefs = useRef([]);
@@ -30,6 +31,24 @@ const VerifyOtp = ({ setIsVerifying }) => {
             inputRefs.current[index - 1].focus();
         }
     };
+
+    const handleVerification = async () => {
+        try {
+            const url = `${import.meta.env.VITE_SERVER_BASE_URL}/api/v1/auth/otp/verify`;
+            const registrationUrl = `${import.meta.env.VITE_SERVER_BASE_URL}/api/v1/auth/register`;
+            const res = await axios.post(url, { ...regData, otp: otp.join("") }, { withCredentials: true });
+
+            if (res.data.verified) {
+                console.log('OTP verification successful: ', res);
+                const registrationRes = await axios.post(registrationUrl, regData, { withCredentials: true });
+                console.log('Registration successful: ', registrationRes);
+                navigate(`/dashboard/${regData.role}`);
+                setIsVerifying(false);
+            }
+        } catch (error) {
+            console.error('OTP verification failed: ', error);
+        }
+    }
 
     return (
         <div className="lg:w-3/5 w-full flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -65,7 +84,7 @@ const VerifyOtp = ({ setIsVerifying }) => {
                 </div>
 
                 {/* Submit Button */}
-                <button onClick={() => navigate('/dashboard')} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg 
+                <button onClick={handleVerification} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg 
                            hover:bg-indigo-700 active:scale-[0.98] transition-all">
                     Verify
                 </button>

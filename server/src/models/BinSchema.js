@@ -7,6 +7,7 @@ const BinSchema = new mongoose.Schema({
         unique: true
     },
     location: {
+        area: { type: String, required: true },
         type: { type: String, default: "Point" },
         coordinates: {
             type: [Number],

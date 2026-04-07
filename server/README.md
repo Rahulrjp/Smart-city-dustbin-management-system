@@ -98,7 +98,7 @@ endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/bins
 
 method :- post
 
-payload :- location, binHeight, binId
+payload :- location, binHeight, binId, area
 
 ## *Get data of a specific bin:-*
 
@@ -142,6 +142,14 @@ method :- get
 
 payload :- none
 
+## *Get driver by userId:-*
+
+endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/drivers/users/:userId
+
+method :- get
+
+payload :- none
+
 ## *update driver status:-*
 
 endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/drivers/:driverId/status
@@ -154,7 +162,7 @@ payload :- status
 
 ## *Add/Update driver location:-*
 
-endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/driver
+endpoint :- https://smart-city-dustbin-management-system.onrender.com/api/driver/location
 
 method :- post
 

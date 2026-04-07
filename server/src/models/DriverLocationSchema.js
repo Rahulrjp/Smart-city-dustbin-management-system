@@ -9,7 +9,6 @@ const DriverLocationSchema = new mongoose.Schema({
         type: { type: String, default: "Point" },
         coordinates: {
             type: [Number],
-            required: true
         }
     },
     timestamp: { type: Date, default: Date.now }

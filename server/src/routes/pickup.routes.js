@@ -6,7 +6,9 @@ import {
     getDriverPickups,
     acceptPickup,
     completePickup,
-    deletePickup
+    deletePickup,
+    getPendingPickups,
+    ongoingPickups
 } from "../controllers/pickup.controller.js";
 
 const router = express.Router();
@@ -16,6 +18,12 @@ router.route("/").post(createPickup);
 
 // 📦 Get all pickups
 router.route("/").get(getAllPickups);
+
+// 🚚 Get all pending pickups
+router.route("/pending").get(getPendingPickups);
+
+// 🚚 Get all ongoing pickups
+router.route("/ongoing").get(ongoingPickups);
 
 // 📦 Get single pickup
 router.route("/:pickupId").get(getPickupById);

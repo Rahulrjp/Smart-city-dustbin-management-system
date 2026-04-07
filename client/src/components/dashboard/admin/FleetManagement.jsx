@@ -1,7 +1,11 @@
-import { Navigation, Smartphone, Truck, Users } from "lucide-react";
-import { fleetData } from "../../../data/mockAdminData";
+import { Navigation, Smartphone, Truck, User, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-const FleetManagement = () => {
+const FleetManagement = ({ drivers }) => {
+
+
+
     return (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
             <div className="flex justify-between items-center">
@@ -13,22 +17,22 @@ const FleetManagement = () => {
             </div>
 
             <div className="grid gap-4">
-                {fleetData.map(driver => (
-                    <div key={driver.id} className="bg-slate-900 border border-slate-800 rounded-3xl p-5 flex flex-col md:flex-row items-center gap-6 group hover:bg-slate-800/30 transition-all">
+                {drivers.map(driver => (
+                    <div key={driver._id} className="bg-slate-900 border border-slate-800 rounded-3xl p-5 flex flex-col md:flex-row items-center gap-6 group hover:bg-slate-800/30 transition-all">
                         <div className="relative">
                             <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center">
                                 <User className="w-8 h-8 text-slate-500" />
                             </div>
-                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-4 border-slate-900 ${driver.status === 'On Route' ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-4 border-slate-900 ${driver.status === 'busy' ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
                         </div>
 
                         <div className="flex-1 text-center md:text-left">
                             <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
-                                <h4 className="font-black text-white team-none text-lg">{driver.name}</h4>
-                                <span className="text-[10px] font-bold text-slate-500 px-2 py-0.5 bg-slate-800 rounded uppercase tracking-tighter">{driver.id}</span>
+                                <h4 className="font-black text-white team-none text-lg">{driver.user.name}</h4>
+                                <span className="text-[10px] font-bold text-slate-500 px-2 py-0.5 bg-slate-800 rounded uppercase tracking-tighter">{driver.id || 'ID here'}</span>
                             </div>
                             <div className="flex items-center justify-center md:justify-start gap-4 text-xs text-slate-400">
-                                <span className="flex items-center gap-1"><Truck className="w-3 h-3" /> {driver.vehicle}</span>
+                                <span className="flex items-center gap-1"><Truck className="w-3 h-3" /> {driver.vehicleNumber || 'Vehicle Number here'}</span>
                                 <span className="flex items-center gap-1"><Navigation className="w-3 h-3" /> {driver.status}</span>
                             </div>
                         </div>
@@ -36,10 +40,10 @@ const FleetManagement = () => {
                         <div className="w-full md:w-64 space-y-1">
                             <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
                                 <span>Route Progress</span>
-                                <span>{driver.progress}%</span>
+                                <span>{driver.progress || '0'}%</span>
                             </div>
                             <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${driver.progress}%` }}></div>
+                                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${driver.progress || 0}%` }}></div>
                             </div>
                         </div>
 

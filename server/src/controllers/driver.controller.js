@@ -25,7 +25,8 @@ export const createDriver = async (req, res) => {
 export const getAllDrivers = async (req, res) => {
     try {
         const drivers = await DriverModel.find().populate("user");
-        return res.status(200).json(drivers);
+        console.log("Fetched Drivers:", drivers);
+        return res.status(200).json({ drivers });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
